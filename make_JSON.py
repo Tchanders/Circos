@@ -1,6 +1,7 @@
 # Makes JSON object from expression or orthology clusters
 # Input 1 is the file dumped by the Perl script
 # Input 2 is the JSON file
+# input 3 is 'expr' or 'evol'
 
 import sys
 import json
@@ -19,4 +20,5 @@ for line in lines:
 
 
 with open( sys.argv[2], 'w' ) as out_file:
+	out_file.write( 'var '+ sys.argv[3] + ' = ' )
 	out_file.write( json.dumps( cluster_dict, sort_keys=True ) )
