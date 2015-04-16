@@ -1,7 +1,7 @@
 # Makes JSON object from expression or orthology clusters
 # Input 1 is the file dumped by the Perl script
 # Input 2 is the JSON file
-# Input 3 is 'expr' or 'evol'
+# Input 3 is 'expr' or 'evol' or 'mapDict', depending on which variable is being made
 # Input 4 is which column for keys (0-indexed)
 # Input 5 is which column for values (0-indexed)
 
