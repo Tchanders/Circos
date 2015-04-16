@@ -1,7 +1,9 @@
 # Makes JSON object from expression or orthology clusters
 # Input 1 is the file dumped by the Perl script
 # Input 2 is the JSON file
-# input 3 is 'expr' or 'evol'
+# Input 3 is 'expr' or 'evol' or 'mapDict', depending on which variable is being made
+# Input 4 is which column for keys (0-indexed)
+# Input 5 is which column for values (0-indexed)
 
 import sys
 import json
@@ -10,13 +12,15 @@ with open( sys.argv[1] ) as in_file:
 	lines = in_file.readlines()
 
 cluster_dict = {}
+key_col = int( sys.argv[4] )
+val_col = int( sys.argv[5] )
 
 for line in lines:
 	line = line.split()
-	if line[1] not in cluster_dict.keys():
-		cluster_dict[line[1]] = [line[2]]
+	if line[key_col] not in cluster_dict.keys():
+		cluster_dict[line[key_col]] = [line[val_col]]
 	else:
-		cluster_dict[line[1]].append( line[2] )
+		cluster_dict[line[key_col]].append( line[val_col] )
 
 
 with open( sys.argv[2], 'w' ) as out_file:
