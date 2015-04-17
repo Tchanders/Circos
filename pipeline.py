@@ -48,7 +48,7 @@ print expr_dump_call, '\n'
 
 ortho_run_call = ("perl cluster-continuous-data.pl -mapname %s -pearson -mapdims 1x%s -seed 12345 -mingenes 1000"
                   " -minconds %d -alpha 0.01 %s") % (ortho_map_name, nof_clusters, minconds, ortho_in_file)
-ortho_dump_call = "perl dump-mappings-for-gp.pl -mapname %s > %s.dump" % (ortho_map_name, expr_map_name)
+ortho_dump_call = "perl dump-mappings-for-gp.pl -mapname %s > %s.dump" % (ortho_map_name, ortho_map_name)
 
 print "Creating the ortho map --> " + ortho_map_name + "\n"
 # os.system(ortho_run_call)
