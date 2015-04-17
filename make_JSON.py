@@ -1,19 +1,57 @@
-# Makes JSON object from expression or orthology clusters
-# Input 1 is the file dumped by the Perl script
-# Input 2 is the JSON file
-# Input 3 is 'expr' or 'evol' or 'mapDict', depending on which variable is being made
-# Input 4 is which column for keys (0-indexed)
-# Input 5 is which column for values (0-indexed)
-
-import sys
 import json
+import argparse
 
-with open(sys.argv[1]) as in_file:
+parser = argparse.ArgumentParser()
+parser.add_argument("-i",
+                    "--input",
+                    type=str,
+                    required=True,
+                    help="Input file. This should be the dump from the Perl script.")
+
+parser.add_argument("-o",
+                    "--output",
+                    type=str,
+                    required=False,
+                    help="Output file. This should end in json."
+                         "If it is not provided same as input but ending in json.")
+
+parser.add_argument("-n",
+                    "--name",
+                    type=str,
+                    required=True,
+                    choices = ['expr', 'evol', 'mapDict'],
+                    help="Name for the JSON variable. Must be either expr, evol or mapDict.")
+
+parser.add_argument("-k",
+                    "--key",
+                    type=str,
+                    required=True,
+                    help="Which column of the input file to use as keys for the JSON file."
+                         "It is zero-indexed.")
+
+parser.add_argument("-v",
+                    "--value",
+                    type=str,
+                    required=True,
+                    help="Which column of the input file to use as values for the JSON file."
+                         "It is zero-indexed.")
+
+args = parser.parse_args()
+
+input_file = args.input
+output_file = args.output
+name = args.name
+key = args.key
+value = args.value
+
+print input_file, output_file, name, key, value
+exit()
+with open(input_file) as in_file:
     lines = in_file.readlines()
 
 cluster_dict = {}
-key_col = int(sys.argv[4])
-val_col = int(sys.argv[5])
+key_col = int(key)
+val_col = int(value)
 
 for line in lines:
     line = line.split()
@@ -22,6 +60,6 @@ for line in lines:
     else:
         cluster_dict[line[key_col]].append(line[val_col])
 
-with open(sys.argv[2], 'w') as out_file:
-    out_file.write('var ' + sys.argv[3] + ' = ')
+with open(output_file, 'w') as out_file:
+    out_file.write('var ' + name + ' = ')
     out_file.write(json.dumps(cluster_dict, sort_keys=True))
