@@ -19,19 +19,19 @@ parser.add_argument("-n",
                     "--name",
                     type=str,
                     required=True,
-                    choices = ['expr', 'evol', 'mapDict'],
+                    choices=['expr', 'evol', 'mapDict'],
                     help="Name for the JSON variable. Must be either expr, evol or mapDict.")
 
 parser.add_argument("-k",
                     "--key",
-                    type=str,
+                    type=int,
                     required=True,
                     help="Which column of the input file to use as keys for the JSON file."
                          "It is zero-indexed.")
 
 parser.add_argument("-v",
                     "--value",
-                    type=str,
+                    type=int,
                     required=True,
                     help="Which column of the input file to use as values for the JSON file."
                          "It is zero-indexed.")
@@ -44,8 +44,6 @@ name = args.name
 key = args.key
 value = args.value
 
-print input_file, output_file, name, key, value
-exit()
 with open(input_file) as in_file:
     lines = in_file.readlines()
 
