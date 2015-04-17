@@ -8,21 +8,20 @@
 import sys
 import json
 
-with open( sys.argv[1] ) as in_file:
-	lines = in_file.readlines()
+with open(sys.argv[1]) as in_file:
+    lines = in_file.readlines()
 
 cluster_dict = {}
-key_col = int( sys.argv[4] )
-val_col = int( sys.argv[5] )
+key_col = int(sys.argv[4])
+val_col = int(sys.argv[5])
 
 for line in lines:
-	line = line.split()
-	if line[key_col] not in cluster_dict.keys():
-		cluster_dict[line[key_col]] = [line[val_col]]
-	else:
-		cluster_dict[line[key_col]].append( line[val_col] )
+    line = line.split()
+    if line[key_col] not in cluster_dict.keys():
+        cluster_dict[line[key_col]] = [line[val_col]]
+    else:
+        cluster_dict[line[key_col]].append(line[val_col])
 
-
-with open( sys.argv[2], 'w' ) as out_file:
-	out_file.write( 'var '+ sys.argv[3] + ' = ' )
-	out_file.write( json.dumps( cluster_dict, sort_keys=True ) )
+with open(sys.argv[2], 'w') as out_file:
+    out_file.write('var ' + sys.argv[3] + ' = ')
+    out_file.write(json.dumps(cluster_dict, sort_keys=True))
