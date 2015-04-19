@@ -91,8 +91,8 @@ for line in lines:
         cluster_dicts[-1]['member_ids'].append(line[val_col])
     # lines_read += 1
 
-cluster_outfile = "%s_%s_cluster_%d.json" % (organism, dataset, nof_clusters)
-clustering_outfile = "%s_clustering_%d.json" % (organism, nof_clusters)
+cluster_outfile = "%s_%s_cluster_%02d.json" % (organism, dataset, nof_clusters)
+clustering_outfile = "%s_clustering_%02d.json" % (organism, nof_clusters)
 
 # Write the clusters json file
 with open(cluster_outfile, 'w') as out_file:
