@@ -64,7 +64,7 @@ elif dataset == 'ortho':
 
 if dataset == 'expr' or dataset == 'ortho':
     clustering_dict = {
-        "id": dataset + "_cluster_%d" % nof_clusters,
+        "id": organism + dataset + "_cluster_%d" % nof_clusters,
         "type": "clustering",
         "member_type": member_type
     }
