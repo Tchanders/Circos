@@ -96,8 +96,7 @@ clustering_outfile = "%s_clustering_%02d.json" % (organism, nof_clusters)
 
 # Write the clusters json file
 with open(cluster_outfile, 'w') as out_file:
-    for cluster in cluster_dicts:
-        out_file.write(json.dumps(cluster) + '\n')
+    out_file.write(json.dumps(cluster_dicts))
 
 # and the clustering file as well
 if clustering_dict:
