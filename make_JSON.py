@@ -64,7 +64,7 @@ elif dataset == 'ortho':
 
 if dataset == 'expr' or dataset == 'ortho':
     clustering_dict = {
-        "id": organism + dataset + "_cluster_%d" % nof_clusters,
+        "id": organism + "_" + dataset + "_cluster_%d" % nof_clusters,
         "type": "clustering",
         "member_type": member_type
     }
@@ -79,11 +79,11 @@ for line in lines:
         clusters_processed.append(cluster_number)
         cluster_dicts.append(
             {
-                "id": organism + dataset + "_cluster_%d_%s" % (nof_clusters, line[key_col]),
+                "id": organism + "_" + dataset + "_cluster_%d_%s" % (nof_clusters, line[key_col]),
                 "type": dataset + "_cluster",
                 "member_ids": [],
                 "name": "Cluster %2d" % (cluster_number + 1),
-                "clustering_id": organism + dataset + "_cluster_%d" % nof_clusters
+                "clustering_id": organism + "_" + dataset + "_cluster_%d" % nof_clusters
             }
         )
         cluster_dicts[-1]['member_ids'].append(line[val_col])
