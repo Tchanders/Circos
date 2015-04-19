@@ -1,0 +1,12 @@
+.section {
+	height: 10px;
+	margin-top: 2px;
+	background-color: #FF0000;
+}
+
+/*From http://bl.ocks.org/mbostock/4062006*/
+.chord path {
+  fill-opacity: .67;
+  stroke: #000;
+  stroke-width: .5px;
+}
