@@ -7,3 +7,7 @@
 3. JS script JSON -> matrix
 4. JS script matrix -> diagram
 
+## SOLR stuff
+
+1. Add the gene to og mapping
+2. type should not be array
