@@ -10,7 +10,7 @@ var exprData = {
 };
 
 var orthoData = {
-	'q'		: 'clustering_id:ortho_cluster_10',
+	'q'		: 'clustering_id:ortho_cluster_5',
 	'wt'	: 'json',
 	'indent': 'true',
 	'rows' 	: '20'
@@ -41,7 +41,7 @@ $.when( promise1, promise2 ).done( function( promise1Args, promise2Args ) {
 	m.makeElements();
 	m.makeElementMatrix();
 	m.makeSizeMatrix();
-	drawCircos( m.sizeMatrix );
+	drawCircos( m );
 });
 
 // Adapted from http://bl.ocks.org/mbostock/4062006
@@ -50,7 +50,7 @@ function drawCircos(matrix) {
 	var chord = d3.layout.chord()
 	    .padding(.05)
 	    .sortSubgroups(d3.descending)
-	    .matrix(matrix);
+	    .matrix(matrix.sizeMatrix);
 
 	var width = 500,
 	    height = 500,
@@ -58,8 +58,16 @@ function drawCircos(matrix) {
 	    outerRadius = innerRadius * 1.1;
 
 	var fill = d3.scale.ordinal()
-	    .domain(d3.range(20))
-	    .range(["#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#FF0000", "#DD3333", "#FF5000", "#FFF200", "#8BFF00", "#3F7103", "#00FFF1", "#0000FF", "#FF00EE", "#8B2584"]);
+	    .domain(d3.range(10))
+	    .range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
+
+	var findColor = function(x) {
+		if ( x < matrix.numType2Clusters ) {
+    		return "#000000";
+    	} else {
+    		return fill(x - matrix.numType2Clusters);
+    	}
+	}
 
 	var svg = d3.select(".diagram-container").append("svg")
 	    .attr("width", width)
@@ -70,8 +78,8 @@ function drawCircos(matrix) {
 	svg.append("g").selectAll("path")
 	    .data(chord.groups)
 	  .enter().append("path")
-	    .style("fill", function(d) { return fill(d.index); })
-	    .style("stroke", function(d) { return fill(d.index); })
+	    .style("fill", function(d) { return findColor(d.index); })
+	    .style("stroke", function(d) { return findColor(d.index); })
 	    .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
 	    .on("mouseover", fade(.1))
 	    .on("mouseout", fade(1));
@@ -82,8 +90,8 @@ function drawCircos(matrix) {
 	    .data(chord.chords)
 	  .enter().append("path")
 	    .attr("d", d3.svg.chord().radius(innerRadius))
-	    .style("fill", function(d) { return fill(Math.max(d.target.index,d.source.index).toString()); })
-	    .style("stroke", function(d) { return fill(Math.max(d.target.index,d.source.index).toString()); })
+	    .style("fill", function(d) { return findColor(Math.max(d.target.index,d.source.index)); })
+	    .style("stroke", function(d) { return findColor(Math.max(d.target.index,d.source.index)); })
 	    .style("opacity", 1);
 
 	// Returns an event handler for fading a given chord group.
