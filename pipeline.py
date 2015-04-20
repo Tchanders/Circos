@@ -20,8 +20,8 @@ args = parser.parse_args()
 organism = args.organism
 nof_clusters = args.number_of_clusters
 
-expr_map_name = "%s_expr_%d" % (organism, nof_clusters)
-ortho_map_name = "%s_ortho_%d" % (organism, nof_clusters)
+expr_map_name = "%s_expr_%02d" % (organism, nof_clusters)
+ortho_map_name = "%s_ortho_%02d" % (organism, nof_clusters)
 
 expr_in_file, ortho_in_file, minconds = '', '', 0
 if organism == 'plasmo':
@@ -40,10 +40,10 @@ expr_run_call = ("perl cluster-continuous-data.pl -mapname %s -pearson -mapdims 
 expr_dump_call = "perl dump-mappings-for-gp.pl -mapname %s > %s.dump" % (expr_map_name, expr_map_name)
 
 print "Creating the expression map --> " + expr_map_name + "\n"
-# os.system(expr_run_call)
+os.system(expr_run_call)
 print expr_run_call
 
-# os.system(expr_dump_call)
+os.system(expr_dump_call)
 print expr_dump_call, '\n'
 
 ortho_run_call = ("perl cluster-continuous-data.pl -mapname %s -pearson -mapdims 1x%s -seed 12345 -mingenes 1000"
@@ -51,10 +51,10 @@ ortho_run_call = ("perl cluster-continuous-data.pl -mapname %s -pearson -mapdims
 ortho_dump_call = "perl dump-mappings-for-gp.pl -mapname %s > %s.dump" % (ortho_map_name, ortho_map_name)
 
 print "Creating the ortho map --> " + ortho_map_name + "\n"
-# os.system(ortho_run_call)
+os.system(ortho_run_call)
 print ortho_run_call
 
-# os.system(ortho_dump_call)
+os.system(ortho_dump_call)
 print ortho_dump_call, '\n'
 
 print "All done."
