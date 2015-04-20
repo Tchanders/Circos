@@ -3,7 +3,7 @@ var clusterData = '',
 	evol = '';
 
 var exprData = {
-	'q'		: 'clustering_id:expr_cluster_10',
+	'q'		: 'clustering_id:expr_cluster_5',
 	'wt'	: 'json',
 	'indent': 'true',
 	'rows' 	: '20'
@@ -46,8 +46,6 @@ $.when( promise1, promise2 ).done( function( promise1Args, promise2Args ) {
 
 // Adapted from http://bl.ocks.org/mbostock/4062006
 function drawCircos(matrix) {
-	// var matrix = m.sizeMatrix;
-	console.log('drawing...');
 
 	var chord = d3.layout.chord()
 	    .padding(.05)
