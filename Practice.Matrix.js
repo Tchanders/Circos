@@ -72,7 +72,7 @@ Practice.Matrix.prototype.makeElements = function() {
 		}
 	}
 	console.log( 'No. type1 names not in dictionary: ' + type2NameUndefinedCount );
-}
+};
 
 /*
 * Create the matrix of elements
@@ -91,7 +91,7 @@ Practice.Matrix.prototype.makeElementMatrix = function() {
 		this.elementMatrix[+this.allElements[i].type2Coo][+this.allElements[i].type1Coo + this.numType2Clusters].push( this.allElements[i] );
 		this.elementMatrix[+this.allElements[i].type1Coo + this.numType2Clusters][+this.allElements[i].type2Coo].push( this.allElements[i] );
 	}
-}
+};
 
 /*
 * Create the size matrix
@@ -112,4 +112,71 @@ Practice.Matrix.prototype.makeSizeMatrix = function() {
 	}
 	// Check all elements are in matrix
 	console.log( matrixSum === 2 * this.allElements.length );
-}
+};
+
+/*
+* Draw the circos diagram
+ */
+Practice.Matrix.prototype.drawCircos = function() {
+
+	// For accessing this in the findColor function
+	var that = this;
+
+	var findColor = function(x) {
+		if ( x < that.numType2Clusters ) {
+    		return "#000000";
+    	} else {
+    		return fill( x - that.numType2Clusters );
+    	}
+	}
+
+	// Adapted from http://bl.ocks.org/mbostock/4062006
+	var chord = d3.layout.chord()
+	    .padding(.05)
+	    .sortSubgroups(d3.descending)
+	    .matrix(this.sizeMatrix);
+
+	var width = 500,
+	    height = 500,
+	    innerRadius = Math.min(width, height) * .41,
+	    outerRadius = innerRadius * 1.1;
+
+	var fill = d3.scale.ordinal()
+	    .domain(d3.range(10))
+	    .range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
+
+	var svg = d3.select(".diagram-container").append("svg")
+	    .attr("width", width)
+	    .attr("height", height)
+	  .append("g")
+	    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+	svg.append("g").selectAll("path")
+	    .data(chord.groups)
+	  .enter().append("path")
+	    .style("fill", function(d) { return findColor(d.index); })
+	    .style("stroke", function(d) { return findColor(d.index); })
+	    .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
+	    .on("mouseover", fade(.1))
+	    .on("mouseout", fade(1));
+
+	svg.append("g")
+	    .attr("class", "chord")
+	  .selectAll("path")
+	    .data(chord.chords)
+	  .enter().append("path")
+	    .attr("d", d3.svg.chord().radius(innerRadius))
+	    .style("fill", function(d) { return findColor(Math.max(d.target.index,d.source.index)); })
+	    .style("stroke", function(d) { return findColor(Math.max(d.target.index,d.source.index)); })
+	    .style("opacity", 1);
+
+	// Returns an event handler for fading a given chord group.
+	function fade(opacity) {
+	  return function(g, i) {
+	    svg.selectAll(".chord path")
+	        .filter(function(d) { return d.source.index != i && d.target.index != i; })
+	      .transition()
+	        .style("opacity", opacity);
+	  };
+	}
+};
