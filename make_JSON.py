@@ -62,11 +62,17 @@ if dataset == 'expr':
 elif dataset == 'ortho':
     member_type = "OG"
 
+
 if dataset == 'expr' or dataset == 'ortho':
+    member_type_dict = {
+        "expr": "gene",
+        "ortho": "OG"
+    }
+
     clustering_dict = {
         "id": organism + "_" + dataset + "_cluster_%d" % nof_clusters,
         "type": "clustering",
-        "member_type": member_type
+        "member_type": member_type_dict[dataset]
     }
 
 lines_read = 0
@@ -89,10 +95,9 @@ for line in lines:
         cluster_dicts[-1]['member_ids'].append(line[val_col])
     else:
         cluster_dicts[-1]['member_ids'].append(line[val_col])
-    # lines_read += 1
 
 cluster_outfile = "%s_%s_cluster_%02d.json" % (organism, dataset, nof_clusters)
-clustering_outfile = "%s_clustering_%02d.json" % (organism, nof_clusters)
+clustering_outfile = "%s_clustering.json" % organism
 
 # Write the clusters json file
 with open(cluster_outfile, 'w') as out_file:
@@ -100,5 +105,5 @@ with open(cluster_outfile, 'w') as out_file:
 
 # and the clustering file as well
 if clustering_dict:
-    with open(clustering_outfile, 'w') as out_file:
+    with open(clustering_outfile, 'a') as out_file:
         out_file.write(json.dumps(clustering_dict) + '\n')
