@@ -1,122 +1,69 @@
-// To populate the selects
-var responseData = {},
-	exprOptions = {},
-	orthoOptions = {};
+function getData( field, value ) {
 
-var exprOptionsData = {
-	'q'		: 'type:expr_cluster',
-	'wt'	: 'json',
-	'indent': 'true',
-	'rows' 	: '200'
-};
+	var data = {
+		'q'		: field + ':' + value,
+		'wt'	: 'json',
+		'indent': 'true',
+		'rows' 	: '200'
+	};
 
-var orthoOptionsData = {
-	'q'		: 'type:ortho_cluster',
-	'wt'	: 'json',
-	'indent': 'true',
-	'rows' 	: '200'
+	return $.ajax( 'solr.php', {
+		method: 'POST',
+		data: data
+	} );
+
 }
 
-var optionsPromise1 = $.ajax( 'solr.php', {
-	method: 'POST',
-	data: exprOptionsData,
-	success: function( response ) {
-		var responseData = response.response.docs;
-		for ( var i = 0, ilen = responseData.length; i < ilen; i++ ) {
-			exprOptions[responseData[i].clustering_id[0]] = true;
+var optionsPromise1 = getData( 'type', 'expr_cluster' );
+var optionsPromise2 = getData( 'type', 'ortho_cluster' );
+
+$.when( optionsPromise1, optionsPromise2 ).done( function( v1, v2 ) {
+
+	var i, key, options, option, chosenExpressionOption, chosenOrthoOption,
+		expressionOptions = v1[0].response.docs,
+		orthologyOptions = v2[0].response.docs;
+
+	function populateSelect( data, selectClass ) {
+		options = {};
+		for ( i = 0, ilen = data.length; i < ilen; i++ ) {
+			options[data[i].clustering_id[0]] = true;
 		}
-		for ( var key in exprOptions ) {
-			if ( exprOptions.hasOwnProperty( key ) ) {
-				var option = $( '<option>' ).text( key );
-				$( '.expr-cluster-select' ).append( option );
+		for ( key in options ) {
+			if ( options.hasOwnProperty( key ) ) {
+				option = $( '<option>' ).text( key );
+				$( '.' + selectClass ).append( option );
 			}
 		}
 	}
-} );
 
-var optionsPromise2 = $.ajax( 'solr.php', {
-	method: 'POST',
-	data: orthoOptionsData,
-	success: function( response ) {
-		var responseData = response.response.docs;
-		for ( var i = 0, ilen = responseData.length; i < ilen; i++ ) {
-			orthoOptions[responseData[i].clustering_id[0]] = true;
-		}
-		for ( var key in orthoOptions ) {
-			if ( orthoOptions.hasOwnProperty( key ) ) {
-				var option = $( '<option>' ).text( key );
-				$( '.ortho-cluster-select' ).append( option );
-			}
-		}
+	function makeCircos( chosenExpressionOption, chosenOrthoOption ) {
+
+		var promise1 = getData( 'clustering_id', chosenExpressionOption );
+		var promise2 = getData( 'clustering_id', chosenOrthoOption );
+
+		$.when( promise1, promise2 ).done( function( v1, v2 ) {
+
+			var	expr = v1[0].response.docs,
+				ortho = v2[0].response.docs,
+				m = new Practice.Matrix( expr, ortho, mapDict ); // TODO sort out mapDict
+
+			m.drawCircos();
+
+		});
+
 	}
-} );
 
-// Once the selects have been populated
-$.when( optionsPromise1, optionsPromise2 ).done( function() {
-	//var response1 = v1[0];
+	populateSelect( expressionOptions, 'expr-cluster-select' );
+	populateSelect( orthologyOptions, 'ortho-cluster-select' );
+
 	$( '.btn-drawCircos' )
 		.removeClass( 'btn-disabled' )
 		.on( 'click', function() {
-			var exprOption = $( '.expr-cluster-select' ).val();
-			var orthoOption = $( '.ortho-cluster-select' ).val();
-			getData( exprOption, orthoOption );
+
+			chosenExpressionOption = $( '.expr-cluster-select' ).val();
+			chosenOrthoOption = $( '.ortho-cluster-select' ).val();
+			makeCircos( chosenExpressionOption, chosenOrthoOption );
+
 		} );
+
 });
-
-function getData( exprOption, orthoOption ) {
-
-	var	clusterData = '',
-		expr = '',
-		ortho = '';
-
-	// function getPromiseFromOption( options ) {
-	// 	var data = {
-	// 		q:option
-	// 	};
-
-	// 	retrun $.ajxj( solr, data, succes)
-	// }
-
-	var exprData = {
-		'q'		: 'clustering_id:' + exprOption,
-		'wt'	: 'json',
-		'indent': 'true',
-		'rows' 	: '20'
-	};
-
-	var orthoData = {
-		'q'		: 'clustering_id:' + orthoOption,
-		'wt'	: 'json',
-		'indent': 'true',
-		'rows' 	: '20'
-	};
-
-	var promise1 = $.ajax( "solr.php", {
-		method: "POST",
-		data: exprData,
-		success: function( response ) {
-			clusterData = response;
-			expr = clusterData.response.docs;
-		}
-	} );
-
-	var promise2 = $.ajax( "solr.php", {
-		method: "POST",
-		data: orthoData,
-		success: function( response ) {
-			clusterData = response;
-			ortho = clusterData.response.docs;
-		}
-	} );
-
-	$.when( promise1, promise2 ).done( function( promise1Args, promise2Args ) {
-		var	expr = promise1Args[0].response.docs,
-			ortho = promise2Args[0].response.docs,
-			m = new Practice.Matrix( expr, ortho, mapDict );
-
-		m.makeElements();
-		m.makeElementMatrix();
-		m.makeSizeMatrix();
-		m.drawCircos();
-	});
-}

@@ -131,6 +131,10 @@ Practice.Matrix.prototype.makeSizeMatrix = function() {
  */
 Practice.Matrix.prototype.drawCircos = function() {
 
+	this.makeElements();
+	this.makeElementMatrix();
+	this.makeSizeMatrix();
+
 	// For accessing this in the findColor function
 	var that = this;
 
