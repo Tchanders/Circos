@@ -22,16 +22,17 @@ Practice.Matrix = function( type1Clusters, type2Clusters, elementDict ) {
 
 	// Set up empty matrices
 	// elementMatrix will contain elements
-	// sizeMatrix will contain numbers and be used to create the diagram
+	// numMatrix will contain numbers and be used to create the diagram
 	this.elementMatrix = [];
-	this.sizeMatrix = [];
-	for ( i = 0, ilen = this.matrixSize; i < ilen; i++ ) { // Array for each row
+	this.numMatrix = [];
+	for ( i = 0, ilen = this.matrixSize; i < ilen; i++ ) {
 		this.elementMatrix[i] = [];
-		this.sizeMatrix[i] = [];
-		for ( j = 0, jlen = this.matrixSize; j < jlen; j++ ) { // Array for each col
-			this.elementMatrix[i][j] = []; // Will be populated with elements
+		this.numMatrix[i] = [];
+		for ( j = 0, jlen = this.matrixSize; j < jlen; j++ ) {
+			this.elementMatrix[i][j] = [];
 		}
 	}
+
 };
 
 /*
@@ -39,7 +40,7 @@ Practice.Matrix = function( type1Clusters, type2Clusters, elementDict ) {
  */
 Practice.Matrix.prototype.makeElements = function() {
 
-	var i, j, clusterMembers, type1Name, type2Name, type2Coo, anElement,
+	var i, j, clusterMembers, type1Name, type2Name, type1Coo, type2Coo, anElement,
 		// Reverse dictionary of type 2 clusters and elements
 		type2ElementToType2Cluster = {};
 
@@ -59,6 +60,7 @@ Practice.Matrix.prototype.makeElements = function() {
 
 			// Set up variables for making new elements
 			type1Name = clusterMembers[j];
+			type1Coo = i;
 			type2Name = this.type1ElementToType2Element[type1Name]; // TODO sort this out!
 			type2Coo = type2ElementToType2Cluster[type2Name];
 
@@ -69,7 +71,7 @@ Practice.Matrix.prototype.makeElements = function() {
 				anElement = new Practice.Element(
 					type1Name,
 					type2Name,
-					i, // Type 1 coordinate
+					type1Coo,
 					type2Coo
 				);
 				this.allElements.push( anElement );
@@ -94,36 +96,44 @@ Practice.Matrix.prototype.makeElements = function() {
  */
 Practice.Matrix.prototype.makeElementMatrix = function() {
 
-	var i;
+	var i, row, col;
 
 	for ( i = 0, ilen = this.allElements.length; i < ilen; i++ ) {
-		this.elementMatrix[+this.allElements[i].type2Coo][+this.allElements[i].type1Coo + this.numType2Clusters].push( this.allElements[i] );
-		this.elementMatrix[+this.allElements[i].type1Coo + this.numType2Clusters][+this.allElements[i].type2Coo].push( this.allElements[i] );
+
+		row = this.allElements[i].type2Coo;
+		col = this.allElements[i].type1Coo + this.numType2Clusters;
+
+		this.elementMatrix[row][col].push( this.allElements[i] );
+		this.elementMatrix[col][row].push( this.allElements[i] );
+
 	}
+
 };
 
 /*
  * Create the size matrix
  */
-Practice.Matrix.prototype.makeSizeMatrix = function() {
+Practice.Matrix.prototype.makenumMatrix = function() {
 
-	var i, j, matrixSum;
+	var i, j, count;
 
 	for ( i = 0, ilen = this.matrixSize; i < ilen; i++ ) {
 		for ( j = 0, jlen = this.matrixSize; j < jlen; j++ ) {
-			this.sizeMatrix[i][j] = this.elementMatrix[i][j].length;
+			this.numMatrix[i][j] = this.elementMatrix[i][j].length;
 		}
 		// Check matrix looks right
-		console.log( this.sizeMatrix[i].toString() );
+		console.log( this.numMatrix[i].toString() );
 	}
-	matrixSum = 0;
+
+	// Check all elements are in matrix
+	count = 0;
 	for ( i = 0, ilen = this.matrixSize; i < ilen; i++ ) {
 		for ( j = 0, jlen = this.matrixSize; j < jlen; j++ ) {
-			matrixSum += this.sizeMatrix[i][j];
+			count += this.numMatrix[i][j];
 		}
 	}
-	// Check all elements are in matrix
-	console.log( matrixSum === 2 * this.allElements.length );
+	console.log( count === 2 * this.allElements.length );
+
 };
 
 /*
@@ -131,10 +141,14 @@ Practice.Matrix.prototype.makeSizeMatrix = function() {
  */
 Practice.Matrix.prototype.drawCircos = function() {
 
+	this.makeElements();
+	this.makeElementMatrix();
+	this.makenumMatrix();
+
 	// For accessing this in the findColor function
 	var that = this;
 
-	var findColor = function(x) {
+	var findColor = function( x ) {
 		if ( x < that.numType2Clusters ) {
     		return "#000000";
     	} else {
@@ -146,7 +160,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 	var chord = d3.layout.chord()
 	    .padding(.05)
 	    .sortSubgroups(d3.descending)
-	    .matrix(this.sizeMatrix);
+	    .matrix(this.numMatrix);
 
 	var width = 300,
 	    height = 300,
@@ -191,4 +205,5 @@ Practice.Matrix.prototype.drawCircos = function() {
 	        .style("opacity", opacity);
 	  };
 	}
+
 };
