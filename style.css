@@ -4,6 +4,9 @@
 	background-color: #FF0000;
 }
 
+.diagram-container {
+}
+
 /*From http://bl.ocks.org/mbostock/4062006*/
 .chord path {
   fill-opacity: .67;
