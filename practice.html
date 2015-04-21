@@ -20,18 +20,19 @@
 	</div>
 
 	<div class="container">
-		<div class="diagram-container">
+		<div class="row">
+			<div class="col-lg-9 diagram-container">
+			</div>
+			<div class="col-lg-3 text-container">
+				<select class="form-control expr-cluster-select"></select>
+				<select class="form-control ortho-cluster-select"></select>
+				<button class="btn btn-default btn-disabled btn-drawCircos">Submit</button>
+			</div>
 		</div>
-		<div class="text-container">
-		</div>
-		<form class="form-control">
-		</form>
 	</div>
 
 	<script src="lib/js/jquery-1.11.0.min.js"></script>
 	<script src="lib/d3/d3.min.js"></script>
-	<script src="plasmo_expr_10.json"></script>
-	<script src="plasmo_evol_10.json"></script>
 	<script src="final_mappings.json"></script>
 	<script src="init.js"></script>
 	<script src="Practice.Element.js"></script>
