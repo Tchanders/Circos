@@ -4,7 +4,7 @@ function getData( field, value ) {
 		'q'		: field + ':' + value,
 		'wt'	: 'json',
 		'indent': 'true',
-		'rows' 	: '200'
+		'rows' 	: '20000'
 	};
 
 	return $.ajax( 'solr.php', {
@@ -19,14 +19,14 @@ var optionsPromise2 = getData( 'type', 'ortho_cluster' );
 
 $.when( optionsPromise1, optionsPromise2 ).done( function( v1, v2 ) {
 
-	var i, key, options, option, chosenExpressionOption, chosenOrthoOption,
+	var i, key, options, option, chosenExpressionOption, chosenOrthoOption, speciesDict,
 		expressionOptions = v1[0].response.docs,
 		orthologyOptions = v2[0].response.docs;
 
 	function populateSelect( data, selectClass ) {
 		options = {};
 		for ( i = 0, ilen = data.length; i < ilen; i++ ) {
-			options[data[i].clustering_id[0]] = true;
+			options[data[i].clustering_id] = true;
 		}
 		for ( key in options ) {
 			if ( options.hasOwnProperty( key ) ) {
@@ -36,7 +36,7 @@ $.when( optionsPromise1, optionsPromise2 ).done( function( v1, v2 ) {
 		}
 	}
 
-	function makeCircos( chosenExpressionOption, chosenOrthoOption ) {
+	function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 
 		var promise1 = getData( 'clustering_id', chosenExpressionOption );
 		var promise2 = getData( 'clustering_id', chosenOrthoOption );
@@ -45,7 +45,7 @@ $.when( optionsPromise1, optionsPromise2 ).done( function( v1, v2 ) {
 
 			var	expr = v1[0].response.docs,
 				ortho = v2[0].response.docs,
-				m = new Practice.Matrix( expr, ortho, mapDict ); // TODO sort out mapDict
+				m = new Practice.Matrix( expr, ortho, dict ); // TODO sort out mapDict
 
 			m.drawCircos();
 
@@ -62,7 +62,7 @@ $.when( optionsPromise1, optionsPromise2 ).done( function( v1, v2 ) {
 
 			chosenExpressionOption = $( '.expr-cluster-select' ).val();
 			chosenOrthoOption = $( '.ortho-cluster-select' ).val();
-			makeCircos( chosenExpressionOption, chosenOrthoOption );
+			makeCircos( chosenExpressionOption, chosenOrthoOption, geneToOG );
 
 		} );
 
