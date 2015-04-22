@@ -4,6 +4,7 @@ function makeDictionary( value ) {
 
 		var data = {
 			'q'		: field + ':' + value,
+			'fq'	: 'og_ids:*',
 			'fl'	: 'gene_id,og_ids',
 			'wt'	: 'json',
 			'indent': 'true',
