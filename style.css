@@ -4,7 +4,8 @@
 	background-color: #FF0000;
 }
 
-.diagram-container {
+.expr-cluster-select, .ortho-cluster-select {
+	margin-bottom: 10px;
 }
 
 /*From http://bl.ocks.org/mbostock/4062006*/

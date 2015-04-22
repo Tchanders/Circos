@@ -7,7 +7,7 @@
 	<link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet">
 	<link href="style.css" rel="stylesheet">
 
-	<title>D3 practice</title>
+	<title>Circos diagrams</title>
 
 </head>
 
@@ -15,7 +15,7 @@
 
 	<div class="navbar navbar-default">
 		<div class="container">
-			<a href="#" class="navbar-brand">D3 practice</a>
+			<a href="#" class="navbar-brand">Circos diagrams</a>
 		</div>
 	</div>
 
@@ -24,7 +24,9 @@
 			<div class="col-lg-9 diagram-container">
 			</div>
 			<div class="col-lg-3 text-container">
+				<p>Number of expression clusters:</p>
 				<select class="form-control expr-cluster-select"></select>
+				<p>Number of orthology clusters:</p>
 				<select class="form-control ortho-cluster-select"></select>
 				<button class="btn btn-default btn-disabled btn-drawCircos">Draw</button>
 			</div>
@@ -37,6 +39,7 @@
 	<script src="init.js"></script>
 	<script src="Practice.Element.js"></script>
 	<script src="Practice.Matrix.js"></script>
+	<script src="make_dictionaries.js"></script>
 	<script src="practice.js"></script>
 
 </body>
