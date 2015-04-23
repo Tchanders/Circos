@@ -46,7 +46,7 @@ $.when( optionsPromise1, optionsPromise2 ).done( function( v1, v2 ) {
 			var	expr = v1[0].response.docs,
 				ortho = v2[0].response.docs,
 				m = new Practice.Matrix( expr, ortho, dict ); // TODO sort out mapDict
-
+				console.log( m );
 			m.drawCircos();
 
 		});
