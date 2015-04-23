@@ -145,6 +145,39 @@ Practice.Matrix.prototype.drawCircos = function() {
 	this.makeElementMatrix();
 	this.makenumMatrix();
 
+	var expand = function() {
+		$( '.diagrams-container' ).append( $diagramContainerBig );
+		$diagramContainerBig.append( $( this ).parent() );
+		$svgContainer.append( $minimiseButton );
+	};
+
+	var $diagramContainer = $( '<div>' ).addClass( 'diagram-container' ),
+		$diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' ),
+		$svgContainer = $( '<div>' ).addClass( 'svg-container' ),
+		$closeButton = $( '<div>' )
+			.addClass( 'small-button close-button' )
+			.text( '×' )
+			.on( 'click', function() {
+				$diagramContainer.remove();
+				$diagramContainerBig.remove();
+			} ),
+		$expandButton = $( '<div>' )
+			.addClass( 'small-button expand-button' )
+			.text( '+' )
+			.on( 'click', expand ),
+		$minimiseButton = $( '<div>' )
+			.addClass( 'small-button minimise-button' )
+			.text( '-' )
+			.on( 'click', function() {
+				$diagramContainerBig.detach();
+				$diagramContainer.append( $( this ).parent() );
+				$minimiseButton.detach();
+			} );
+
+	$diagramContainer.append( $svgContainer );
+	$svgContainer.append( $closeButton, $expandButton );
+	$( '.diagrams-container' ).append( $diagramContainer );
+
 	// For accessing this in the findColor function
 	var that = this;
 
@@ -162,8 +195,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .sortSubgroups(d3.descending)
 	    .matrix(this.numMatrix);
 
-	var width = 300,
-	    height = 300,
+	var width = 200,
+	    height = 200,
 	    innerRadius = Math.min(width, height) * .41,
 	    outerRadius = innerRadius * 1.1;
 
@@ -171,9 +204,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .domain(d3.range(10))
 	    .range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
 
-	var svg = d3.select(".diagram-container").append("svg")
-	    .attr("width", width)
-	    .attr("height", height)
+	var svg = d3.select($svgContainer[0]).append("svg")
+	    .attr("viewBox", "0 0 " + width + " " + height)
 	  .append("g")
 	    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 

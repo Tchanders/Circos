@@ -7,8 +7,9 @@ function getData( field, value ) {
 		'rows' 	: '20000'
 	};
 
-	return $.ajax( 'solr.php', {
-		method: 'POST',
+	return $.ajax( 'http://localhost:8983/solr/circos/select', {
+		dataType: 'jsonp',
+		jsonp: 'json.wrf',
 		data: data
 	} );
 
@@ -46,7 +47,7 @@ $.when( optionsPromise1, optionsPromise2 ).done( function( v1, v2 ) {
 			var	expr = v1[0].response.docs,
 				ortho = v2[0].response.docs,
 				m = new Practice.Matrix( expr, ortho, dict ); // TODO sort out mapDict
-
+				console.log( m );
 			m.drawCircos();
 
 		});

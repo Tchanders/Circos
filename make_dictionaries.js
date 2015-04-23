@@ -11,9 +11,10 @@ function makeDictionary( value ) {
 			'rows' 	: '20000'
 		};
 
-		return $.ajax( 'solr.php', {
-			method: 'POST',
-			data: data,
+		return $.ajax( 'http://localhost:8983/solr/circos/select', {
+			dataType: 'jsonp',
+			jsonp: 'json.wrf',
+			data: data
 		} );
 
 	};

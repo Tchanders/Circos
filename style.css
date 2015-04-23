@@ -4,6 +4,73 @@
 	background-color: #FF0000;
 }
 
+.svg-container {
+	width: 90%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.diagram-container {
+	display: inline-block;
+	position: relative;
+	height: 200px;
+	width: 200px;
+	margin: 5px;
+	vertical-align: top;
+}
+
+.diagram-container-big {
+	position: absolute;
+	top: 50px;
+	left: 50px;
+	height: 400px;
+	width: 400px;
+	background-color: #FFFFFF;
+	border-style: solid;
+	border-width: 1px;
+	z-index: 1;
+}
+
+.small-button {
+	position: absolute;
+	height: 20px;
+	width: 20px;
+	border-radius: 5px;
+	background-color: #CCCCCC;
+	color: #333333;
+	text-align: center;
+	cursor: pointer;
+}
+
+.small-button:hover {
+	box-shadow: 0 0 5px;
+}
+
+.close-button {
+	top: 170px;
+	left: 170px;
+}
+
+.expand-button {
+	top: 170px;
+	left: 10px;
+}
+
+.minimise-button {
+	top: 370px;
+	left: 10px;
+}
+
+.diagram-container-big > .svg-container > .close-button {
+	top: 370px;
+	left: 370px;
+}
+
+.diagram-container-big > .svg-container > .expand-button {
+	top: 370px;
+	left: 10px;
+}
+
 .expr-cluster-select, .ortho-cluster-select {
 	margin-bottom: 10px;
 }
