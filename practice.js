@@ -7,8 +7,9 @@ function getData( field, value ) {
 		'rows' 	: '20000'
 	};
 
-	return $.ajax( 'solr.php', {
-		method: 'POST',
+	return $.ajax( 'http://localhost:8983/solr/circos/select', {
+		dataType: 'jsonp',
+		jsonp: 'json.wrf',
 		data: data
 	} );
 
