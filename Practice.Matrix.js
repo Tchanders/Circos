@@ -154,19 +154,22 @@ Practice.Matrix.prototype.drawCircos = function() {
 	var $diagramContainer = $( '<div>' ).addClass( 'diagram-container' ),
 		$diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' ),
 		$svgContainer = $( '<div>' ).addClass( 'svg-container' ),
+
 		$closeButton = $( '<div>' )
-			.addClass( 'small-button close-button' )
+			.addClass( 'button small-button close-button' )
 			.text( '×' )
 			.on( 'click', function() {
 				$diagramContainer.remove();
 				$diagramContainerBig.remove();
 			} ),
+
 		$expandButton = $( '<div>' )
-			.addClass( 'small-button expand-button' )
+			.addClass( 'button small-button expand-button' )
 			.text( '+' )
 			.on( 'click', expand ),
+
 		$minimiseButton = $( '<div>' )
-			.addClass( 'small-button minimise-button' )
+			.addClass( 'button small-button minimise-button' )
 			.text( '-' )
 			.on( 'click', function() {
 				$diagramContainerBig.detach();
