@@ -1,12 +1,16 @@
 var selectedSpecies = 'anoph',
-	anophelesOptions = {
-		'expr': {},
-		'ortho': {}
-	},
+	colorExpressionClusters = true,
+	bigDiagramExists = false,
 
-	plasmodiumOptions = {
-		'expr': {},
-		'ortho': {}
+	optionsDict = {
+		'anoph': {
+			'expr': {},
+			'ortho': {}
+		},
+		'plasmo': {
+			'expr': {},
+			'ortho': {}
+		}
 	};
 
 function getData( field, value ) {

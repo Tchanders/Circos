@@ -39,5 +39,5 @@ function makeDictionary( value ) {
 
 var geneToOG = {};
 
-makeDictionary( '\"Anopheles gambiae\"' );
-makeDictionary( '\"Plasmodium falciparum\"' );
+makeDictionary( '"Anopheles gambiae"' );
+makeDictionary( '"Plasmodium falciparum"' );
