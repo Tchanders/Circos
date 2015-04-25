@@ -1,3 +1,18 @@
+var selectedSpecies = 'anoph',
+	colorExpressionClusters = true,
+	bigDiagramExists = false,
+
+	optionsDict = {
+		'anoph': {
+			'expr': {},
+			'ortho': {}
+		},
+		'plasmo': {
+			'expr': {},
+			'ortho': {}
+		}
+	};
+
 function getData( field, value ) {
 
 	var data = {
@@ -15,56 +30,104 @@ function getData( field, value ) {
 
 }
 
-var optionsPromise1 = getData( 'type', 'expr_cluster' );
-var optionsPromise2 = getData( 'type', 'ortho_cluster' );
 
-$.when( optionsPromise1, optionsPromise2 ).done( function( v1, v2 ) {
+function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 
-	var i, key, options, option, chosenExpressionOption, chosenOrthoOption, speciesDict,
-		expressionOptions = v1[0].response.docs,
-		orthologyOptions = v2[0].response.docs;
+	var promise1 = getData( 'clustering_id', chosenExpressionOption );
+	var promise2 = getData( 'clustering_id', chosenOrthoOption );
 
-	function populateSelect( data, selectClass ) {
-		options = {};
-		for ( i = 0, ilen = data.length; i < ilen; i++ ) {
-			options[data[i].clustering_id] = true;
-		}
-		for ( key in options ) {
-			if ( options.hasOwnProperty( key ) ) {
-				option = $( '<option>' ).text( key );
-				$( '.' + selectClass ).append( option );
-			}
+	$.when( promise1, promise2 ).done( function( v1i, v2i ) {
+
+		var	expr = v1i[0].response.docs,
+			ortho = v2i[0].response.docs,
+			m = new Practice.Matrix( expr, ortho, dict, colorExpressionClusters );
+			console.log( m );
+		m.drawCircos();
+
+	});
+
+}
+
+function showOptions( species ) {
+
+	var i, key,
+		dictLength,
+		option,
+		type,
+		types = ['expr', 'ortho'];
+
+	for ( i = 0; i < types.length; i++ ) {
+		type = types[i];
+		$( '.' + type  + '-cluster-select' ).empty();
+		for ( key in optionsDict[species][type] ) {
+			option = $( '<option>' ).text( optionsDict[species][type][key] );
+			$( '.' + type + '-cluster-select' ).append( option );
 		}
 	}
 
-	function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
-
-		var promise1 = getData( 'clustering_id', chosenExpressionOption );
-		var promise2 = getData( 'clustering_id', chosenOrthoOption );
-
-		$.when( promise1, promise2 ).done( function( v1, v2 ) {
-
-			var	expr = v1[0].response.docs,
-				ortho = v2[0].response.docs,
-				m = new Practice.Matrix( expr, ortho, dict ); // TODO sort out mapDict
-				console.log( m );
-			m.drawCircos();
-
-		});
-
-	}
-
-	populateSelect( expressionOptions, 'expr-cluster-select' );
-	populateSelect( orthologyOptions, 'ortho-cluster-select' );
-
+	// Make draw button use selectedSpecies data
 	$( '.btn-drawCircos' )
-		.removeClass( 'btn-disabled' )
+		.removeClass( 'btn-disabled' ) // Only necessary the first time
+		.off() // Remove the old onclick function
 		.on( 'click', function() {
 
-			chosenExpressionOption = $( '.expr-cluster-select' ).val();
-			chosenOrthoOption = $( '.ortho-cluster-select' ).val();
-			makeCircos( chosenExpressionOption, chosenOrthoOption, geneToOG );
+			chosenExpressionOption = selectedSpecies + '_expr_cluster_' + $( '.expr-cluster-select' ).val();
+			chosenOrthoOption = selectedSpecies + '_ortho_cluster_' + $( '.ortho-cluster-select' ).val();
+			makeCircos( chosenExpressionOption, chosenOrthoOption, geneToOG ); // TODO sort out global geneToOG
 
+		} );
+
+}
+
+var optionsPromise1 = getData( 'type', 'clustering' );
+
+$.when( optionsPromise1 ).done( function( v1 ) {
+
+	var chosenExpressionOption, chosenOrthoOption, // TODO Move these down
+		options = v1.response.docs;
+
+	function populateOptions( data ) {
+
+		var i, idList, species, type, num;
+
+		for ( i = 0, ilen = data.length; i < ilen; i++ ) {
+
+			// WARNING!
+			// The following relies on clutering_id being of the form: species_type_cluster_numClusters
+			idList = data[i].id.split( '_' );
+			species = idList[0];
+			type = idList[1];
+			num = idList[3];
+			if ( !optionsDict[species][type][num] ) {
+				optionsDict[species][type][num] = num;
+			}
+
+		}
+
+	}
+
+	populateOptions( options );
+
+	// First show default species options
+	showOptions( selectedSpecies );
+
+	$( '.species-radio' )
+		.on( 'change', function() {
+			var species = $( '.species-radio:checked' ).val();
+
+			selectedSpecies = species;
+			showOptions( selectedSpecies );
+		} );
+
+	$( '.color-radio' )
+		.on( 'change', function() {
+			var type = $( '.color-radio:checked' ).val();
+
+			if ( type === 'expression' ) {
+				colorExpressionClusters = true;
+			} else {
+				colorExpressionClusters = false;
+			}
 		} );
 
 });

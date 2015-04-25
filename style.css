@@ -23,27 +23,33 @@
 	position: absolute;
 	top: 50px;
 	left: 50px;
-	height: 400px;
-	width: 400px;
+	height: 500px;
+	width: 500px;
 	background-color: #FFFFFF;
 	border-style: solid;
 	border-width: 1px;
 	z-index: 1;
 }
 
-.small-button {
-	position: absolute;
-	height: 20px;
-	width: 20px;
+.button {
+	border-style: solid;
+	border-width: 1px;
+	border-color: #333333;
 	border-radius: 5px;
-	background-color: #CCCCCC;
+	background-color: #FFFFFF;
 	color: #333333;
 	text-align: center;
 	cursor: pointer;
 }
 
-.small-button:hover {
+.button:hover {
 	box-shadow: 0 0 5px;
+}
+
+.small-button {
+	position: absolute;
+	height: 20px;
+	width: 20px;
 }
 
 .close-button {
@@ -56,18 +62,19 @@
 	left: 10px;
 }
 
+/*Only ever used inside diagram-container-big*/
 .minimise-button {
-	top: 370px;
+	top: 470px;
 	left: 10px;
 }
 
 .diagram-container-big > .svg-container > .close-button {
-	top: 370px;
-	left: 370px;
+	top: 470px;
+	left: 470px;
 }
 
 .diagram-container-big > .svg-container > .expand-button {
-	top: 370px;
+	top: 470px;
 	left: 10px;
 }
 

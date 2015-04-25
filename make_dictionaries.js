@@ -17,7 +17,7 @@ function makeDictionary( value ) {
 			data: data
 		} );
 
-	};
+	}
 
 	var promise1 = getData( 'species_s', value );
 
@@ -39,5 +39,5 @@ function makeDictionary( value ) {
 
 var geneToOG = {};
 
-makeDictionary( '\"Anopheles gambiae\"' );
-makeDictionary( '\"Plasmodium falciparum\"' );
+makeDictionary( '"Anopheles gambiae"' );
+makeDictionary( '"Plasmodium falciparum"' );
