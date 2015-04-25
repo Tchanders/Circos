@@ -3,22 +3,22 @@
  *
  * @class
  */
-Practice.Matrix = function( type1Clusters, type2Clusters, elementDict ) {
+Practice.Matrix = function( expressionClusters, orthologyClusters, elementDict ) {
 
 	var i, j;
 
 	// An "element" is the basic data unit, e.g. a gene or an orthologous group
 	// A "cluster" contains elements
 	// A "clustering" is the particular set of clusters into which the elements are split
-	this.type1Clusters = type1Clusters;
-	this.type2Clusters = type2Clusters;
+	this.expressionClusters = expressionClusters;
+	this.orthologyClusters = orthologyClusters;
 	this.type1ElementToType2Element = elementDict;
 	this.allElements = [];
 
 	// Size of matrices is determined by size of clusters
-	this.numType1Clusters = Object.keys( this.type1Clusters ).length;
-	this.numType2Clusters = Object.keys( this.type2Clusters ).length;
-	this.matrixSize = this.numType1Clusters + this.numType2Clusters;
+	this.numexpressionClusters = Object.keys( this.expressionClusters ).length;
+	this.numorthologyClusters = Object.keys( this.orthologyClusters ).length;
+	this.matrixSize = this.numexpressionClusters + this.numorthologyClusters;
 
 	// Set up empty matrices
 	// elementMatrix will contain elements
@@ -44,8 +44,8 @@ Practice.Matrix.prototype.makeElements = function() {
 		// Reverse dictionary of type 2 clusters and elements
 		type2ElementToType2Cluster = {};
 
-	for ( i = 0, ilen = this.type2Clusters.length; i < ilen; i++ ) {
-		clusterMembers = this.type2Clusters[i].member_ids;
+	for ( i = 0, ilen = this.orthologyClusters.length; i < ilen; i++ ) {
+		clusterMembers = this.orthologyClusters[i].member_ids;
 		for ( j = 0, jlen = clusterMembers.length; j < jlen; j++ ) {
 			type2ElementToType2Cluster[clusterMembers[j]] = i;
 		}
@@ -53,8 +53,8 @@ Practice.Matrix.prototype.makeElements = function() {
 
 	// Create new elements and first give them type 1 names and type 1 coordinates
 	type2NameUndefinedCount = 0;
-	for ( i = 0, ilen = this.type1Clusters.length; i < ilen; i++ ) {
-		clusterMembers = this.type1Clusters[i].member_ids;
+	for ( i = 0, ilen = this.expressionClusters.length; i < ilen; i++ ) {
+		clusterMembers = this.expressionClusters[i].member_ids;
 		console.log( 'Cluster ' + i + ' has ' + clusterMembers.length + ' elements' );
 		for ( j = 0, jlen = clusterMembers.length; j < jlen; j++ ) {
 
@@ -101,7 +101,7 @@ Practice.Matrix.prototype.makeElementMatrix = function() {
 	for ( i = 0, ilen = this.allElements.length; i < ilen; i++ ) {
 
 		row = this.allElements[i].type2Coo;
-		col = this.allElements[i].type1Coo + this.numType2Clusters;
+		col = this.allElements[i].type1Coo + this.numorthologyClusters;
 
 		this.elementMatrix[row][col].push( this.allElements[i] );
 		this.elementMatrix[col][row].push( this.allElements[i] );
