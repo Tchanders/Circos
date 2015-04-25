@@ -46,16 +46,6 @@
 	box-shadow: 0 0 5px;
 }
 
-.species-button {
-	margin: 5px;
-	padding: 5px;
-}
-
-.highlighted-button {
-	box-shadow: 0 0 5px;
-	cursor: default;
-}
-
 .small-button {
 	position: absolute;
 	height: 20px;

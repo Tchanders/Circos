@@ -204,12 +204,28 @@ Practice.Matrix.prototype.drawCircos = function() {
 	var that = this;
 
 	var findColor = function( x ) {
-		if ( x < that.numType2Clusters ) {
-    		return "#000000";
-    	} else {
-    		return fill( x - that.numType2Clusters );
-    	}
-	}
+		if ( colorExpressionClusters ) {
+			if ( x < that.numorthologyClusters ) {
+	    		return "#000000";
+	    	} else {
+	    		return fill( x - that.numorthologyClusters );
+	    	}
+		} else {
+			if ( x < that.numorthologyClusters ) {
+	    		return fill( x - that.numorthologyClusters );
+	    	} else {
+	    		return "#000000";
+	    	}
+		}
+	};
+
+	var findIndex = function( d ) {
+		if ( colorExpressionClusters ) {
+			return Math.max( d.target.index, d.source.index );
+		} else {
+			return Math.min( d.target.index, d.source.index );
+		}
+	};
 
 	// The following is adapted from http://bl.ocks.org/mbostock/4062006
 	var chord = d3.layout.chord()
@@ -237,7 +253,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .style("fill", function(d) { return findColor(d.index); })
 	    .style("stroke", function(d) { return findColor(d.index); })
 	    .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
-	    .on("mouseover", fade(.1))
+	    .on("mouseover", fade(0))
 	    .on("mouseout", fade(1));
 
 	svg.append("g")
@@ -246,8 +262,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .data(chord.chords)
 	  .enter().append("path")
 	    .attr("d", d3.svg.chord().radius(innerRadius))
-	    .style("fill", function(d) { return findColor(Math.max(d.target.index,d.source.index)); })
-	    .style("stroke", function(d) { return findColor(Math.max(d.target.index,d.source.index)); })
+	    .style("fill", function(d) { return findColor(findIndex(d)); })
+	    .style("stroke", function(d) { return findColor(findIndex(d)); })
 	    .style("opacity", 1);
 
 	// Returns an event handler for fading a given chord group.

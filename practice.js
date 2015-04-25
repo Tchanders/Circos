@@ -26,109 +26,104 @@ function getData( field, value ) {
 
 }
 
-var optionsPromise1 = getData( 'type', 'expr_cluster' );
-var optionsPromise2 = getData( 'type', 'ortho_cluster' );
 
-$.when( optionsPromise1, optionsPromise2 ).done( function( v1, v2 ) {
+function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 
-	var chosenExpressionOption, chosenOrthoOption, // TODO Move these down
-		expressionOptions = v1[0].response.docs,
-		orthologyOptions = v2[0].response.docs;
+	var promise1 = getData( 'clustering_id', chosenExpressionOption );
+	var promise2 = getData( 'clustering_id', chosenOrthoOption );
 
-	function populateOptions( data ) {
+	$.when( promise1, promise2 ).done( function( v1i, v2i ) {
 
-		var i, idList, idSpecies, idType, idNumClusters;
+		var	expr = v1i[0].response.docs,
+			ortho = v2i[0].response.docs,
+			m = new Practice.Matrix( expr, ortho, dict, colorExpressionClusters );
+			console.log( m );
+		m.drawCircos();
 
-		function addToOptions( species, type, num ) {
+	});
 
-			var dict;
+}
 
-			switch ( species ) {
-				case 'anoph':
-					dict = anophelesOptions;
-					break;
-				case 'plasmo':
-					dict = plasmodiumOptions;
-					break;
-			}
+function showOptions( species ) {
 
-			if ( !dict[type][num] ) {
-				dict[type][num] = 1;
-			} else {
-				dict[type][num] += 1;
-			}
+	var i, key,
+		dictLength,
+		option,
+		type,
+		types = ['expr', 'ortho'];
 
-		}
-
-		for ( i = 0, ilen = data.length; i < ilen; i++ ) {
-			// WARNING!
-			// The following relies on clutering_id being of the form: species_type_cluster_numClusters
-			idList = data[i].clustering_id.split( '_' );
-			idSpecies = idList[0];
-			idType = idList[1];
-			idNumClusters = idList[3];
-			addToOptions( idSpecies, idType, idNumClusters );
-		}
-
-	}
-
-	function showOptions( species ) {
-
-		var i, key,
-			dictLength,
-			option,
-			type,
-			types = ['expr', 'ortho'];
-
-		switch ( species ) {
-			case 'anoph':
-				dict = anophelesOptions;
-				break;
-			case 'plasmo':
-				dict = plasmodiumOptions;
-				break;
-		}
-
-		for ( i = 0; i < types.length; i++ ) {
-			type = types[i];
-			for ( key in dict[type] ) {
-				option = $( '<option>' ).text( dict[type][key] );
-				$( '.' + type + '-cluster-select' ).append( option );
-			}
+	for ( i = 0; i < types.length; i++ ) {
+		type = types[i];
+		$( '.' + type  + '-cluster-select' ).empty();
+		for ( key in optionsDict[species][type] ) {
+			option = $( '<option>' ).text( optionsDict[species][type][key] );
+			$( '.' + type + '-cluster-select' ).append( option );
 		}
 	}
 
-	function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
-
-		var promise1 = getData( 'clustering_id', chosenExpressionOption );
-		var promise2 = getData( 'clustering_id', chosenOrthoOption );
-
-		$.when( promise1, promise2 ).done( function( v1i, v2i ) {
-
-			var	expr = v1i[0].response.docs,
-				ortho = v2i[0].response.docs,
-				m = new Practice.Matrix( expr, ortho, dict );
-				console.log( m );
-			m.drawCircos();
-
-		});
-
-	}
-
-	populateOptions( expressionOptions );
-	populateOptions( orthologyOptions );
-
-	// First show default species options
-	showOptions( selectedSpecies );
-
+	// Make draw button use selectedSpecies data
 	$( '.btn-drawCircos' )
-		.removeClass( 'btn-disabled' )
+		.removeClass( 'btn-disabled' ) // Only necessary the first time
+		.off() // Remove the old onclick function
 		.on( 'click', function() {
 
 			chosenExpressionOption = selectedSpecies + '_expr_cluster_' + $( '.expr-cluster-select' ).val();
 			chosenOrthoOption = selectedSpecies + '_ortho_cluster_' + $( '.ortho-cluster-select' ).val();
 			makeCircos( chosenExpressionOption, chosenOrthoOption, geneToOG ); // TODO sort out global geneToOG
 
+		} );
+
+}
+
+var optionsPromise1 = getData( 'type', 'clustering' );
+
+$.when( optionsPromise1 ).done( function( v1 ) {
+
+	var chosenExpressionOption, chosenOrthoOption, // TODO Move these down
+		options = v1.response.docs;
+
+	function populateOptions( data ) {
+
+		var i, idList, species, type, num;
+
+		for ( i = 0, ilen = data.length; i < ilen; i++ ) {
+
+			// WARNING!
+			// The following relies on clutering_id being of the form: species_type_cluster_numClusters
+			idList = data[i].id.split( '_' );
+			species = idList[0];
+			type = idList[1];
+			num = idList[3];
+			if ( !optionsDict[species][type][num] ) {
+				optionsDict[species][type][num] = num;
+			}
+
+		}
+
+	}
+
+	populateOptions( options );
+
+	// First show default species options
+	showOptions( selectedSpecies );
+
+	$( '.species-radio' )
+		.on( 'change', function() {
+			var species = $( '.species-radio:checked' ).val();
+
+			selectedSpecies = species;
+			showOptions( selectedSpecies );
+		} );
+
+	$( '.color-radio' )
+		.on( 'change', function() {
+			var type = $( '.color-radio:checked' ).val();
+
+			if ( type === 'expression' ) {
+				colorExpressionClusters = true;
+			} else {
+				colorExpressionClusters = false;
+			}
 		} );
 
 });

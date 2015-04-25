@@ -17,7 +17,7 @@ function makeDictionary( value ) {
 			data: data
 		} );
 
-	};
+	}
 
 	var promise1 = getData( 'species_s', value );
 

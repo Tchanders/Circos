@@ -21,17 +21,57 @@
 
 	<div class="container">
 		<div class="row">
+
 			<div class="col-lg-9 diagrams-container">
 			</div>
+
 			<div class="col-lg-3 text-container">
-				<div class="button species-button highlighted-button">Anopheles gambiae</div>
-				<div class="button species-button">Plasmodium falciparum</div>
-				<p>Number of expression clusters:</p>
-				<select class="form-control expr-cluster-select"></select>
-				<p>Number of orthology clusters:</p>
-				<select class="form-control ortho-cluster-select"></select>
-				<button class="btn btn-default btn-disabled btn-drawCircos">Draw</button>
+				<div class="panel panel-default">
+
+					<div class="panel-heading">
+						Choose your options
+					</div>
+
+					<div class="panel-body">
+						<label>
+							<input type="radio"
+								name="species"
+								value="anoph"
+								class="species-radio"
+								checked> Anopheles
+						</label>
+						<label>
+							<input type="radio"
+								name="species"
+								value="plasmo"
+								class="species-radio"> Plasmodium
+						</label>
+						<p>No. expression clusters:
+							<select class="form-control expr-cluster-select"></select>
+						</p>
+						<p>No. orthology clusters:
+							<select class="form-control ortho-cluster-select"></select>
+						</p>
+						<label>
+							<input type="radio"
+								name="color"
+								value="expression"
+								class="color-radio"
+								checked> Colour expression clusters
+						</label>
+						<label>
+							<input type="radio"
+								name="color"
+								value="orthology"
+								class="color-radio"> Colour orthology clusters
+						</label>
+						<br>
+						<button class="btn btn-default btn-disabled btn-drawCircos">Draw</button>
+					</div>
+
+				</div>
 			</div>
+
 		</div>
 	</div>
 
