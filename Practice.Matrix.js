@@ -146,9 +146,32 @@ Practice.Matrix.prototype.drawCircos = function() {
 	this.makenumMatrix();
 
 	var expand = function() {
-		$( '.diagrams-container' ).append( $diagramContainerBig );
-		$diagramContainerBig.append( $( this ).parent() );
-		$svgContainer.append( $minimiseButton );
+
+		// Don't run if another diagram is already maximised
+		if ( !bigDiagramExists ) {
+			$( '.diagrams-container' ).append( $diagramContainerBig );
+			$diagramContainerBig.append( $( this ).parent() );
+			$svgContainer.append( $minimiseButton );
+
+			bigDiagramExists = true;
+			$( '.expand-button' ).css( 'pointer-events', 'none' );
+
+			$closeButton.hide();
+		}
+
+	};
+
+	var minimise = function() {
+
+		$diagramContainerBig.detach();
+		$diagramContainer.append( $( this ).parent() );
+		$minimiseButton.detach();
+
+		bigDiagramExists = false;
+		$( '.expand-button' ).css( 'pointer-events', '' );
+
+		$closeButton.show();
+
 	};
 
 	var $diagramContainer = $( '<div>' ).addClass( 'diagram-container' ),
@@ -170,12 +193,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 		$minimiseButton = $( '<div>' )
 			.addClass( 'button small-button minimise-button' )
-			.text( '-' )
-			.on( 'click', function() {
-				$diagramContainerBig.detach();
-				$diagramContainer.append( $( this ).parent() );
-				$minimiseButton.detach();
-			} );
+			.text( '−' )
+			.on( 'click', minimise );
 
 	$diagramContainer.append( $svgContainer );
 	$svgContainer.append( $closeButton, $expandButton );
