@@ -5,9 +5,12 @@
 }
 
 .svg-container {
-	width: 90%;
-	margin-left: auto;
-	margin-right: auto;
+	width: 100%;
+}
+
+.svg-inner-container {
+	width: 100%;
+	padding: 20px;
 }
 
 .diagram-container {
@@ -29,6 +32,17 @@
 	border-style: solid;
 	border-width: 1px;
 	z-index: 1;
+}
+
+.diagram-title {
+	position: absolute;
+	top: 0px;
+	width: 100%;
+	text-align: center;
+}
+
+.diagram-container-big > .svg-container > .diagram-title {
+	font-size: 24px;
 }
 
 .button {

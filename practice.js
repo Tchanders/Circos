@@ -41,7 +41,6 @@ function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 		var	expr = v1i[0].response.docs,
 			ortho = v2i[0].response.docs,
 			m = new Practice.Matrix( expr, ortho, dict, colorExpressionClusters );
-			console.log( m );
 		m.drawCircos();
 
 	});
