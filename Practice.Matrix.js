@@ -33,6 +33,18 @@ Practice.Matrix = function( expressionClusters, orthologyClusters, elementDict )
 		}
 	}
 
+	// For labels
+	// WARNING!
+	// The following relies on clutering_id being of the form: species_type_cluster_numClusters
+	var idSpecies = this.expressionClusters[0].clustering_id.split( '_' )[0];
+	switch ( idSpecies ) {
+		case 'anoph':
+			this.species = 'Anopheles';
+			break;
+		case 'plasmo':
+			this.species = 'Plasmodium';
+	}
+
 };
 
 /*
@@ -177,6 +189,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	var $diagramContainer = $( '<div>' ).addClass( 'diagram-container' ),
 		$diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' ),
 		$svgContainer = $( '<div>' ).addClass( 'svg-container' ),
+		$svgInnerContainer = $( '<div>' ).addClass( 'svg-inner-container' ),
+		$title = $( '<p>' ).addClass( 'diagram-title' ).text( this.species ),
 
 		$closeButton = $( '<div>' )
 			.addClass( 'button small-button close-button' )
@@ -197,7 +211,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 			.on( 'click', minimise );
 
 	$diagramContainer.append( $svgContainer );
-	$svgContainer.append( $closeButton, $expandButton );
+	$svgContainer.append( $title, $svgInnerContainer, $closeButton, $expandButton );
 	$( '.diagrams-container' ).append( $diagramContainer );
 
 	// For accessing this in the findColor function
@@ -242,7 +256,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .domain(d3.range(10))
 	    .range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
 
-	var svg = d3.select($svgContainer[0]).append("svg")
+	var svg = d3.select($svgInnerContainer[0]).append("svg")
 	    .attr("viewBox", "0 0 " + width + " " + height)
 	  .append("g")
 	    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
