@@ -10,14 +10,19 @@
 
 .svg-inner-container {
 	width: 100%;
-	padding: 20px;
+	padding: 20px 20px 0px 20px;
+}
+
+.diagram-container-container {
+	width: 33.3%;
+	min-width: 200px;
+	display: inline-block;
 }
 
 .diagram-container {
 	display: inline-block;
 	position: relative;
-	height: 200px;
-	width: 200px;
+	width: 100%;
 	margin: 5px;
 	vertical-align: top;
 }
@@ -26,18 +31,18 @@
 	position: absolute;
 	top: 50px;
 	left: 50px;
-	height: 500px;
-	width: 500px;
+	width: 50%;
 	background-color: #FFFFFF;
 	border-style: solid;
 	border-width: 1px;
-	z-index: 1;
+	z-index: 2;
 }
 
 .diagram-title {
 	position: absolute;
 	top: 0px;
 	width: 100%;
+	font-size: 18px;
 	text-align: center;
 }
 
@@ -46,6 +51,7 @@
 }
 
 .button {
+	position: relative;
 	border-style: solid;
 	border-width: 1px;
 	border-color: #333333;
@@ -54,6 +60,7 @@
 	color: #333333;
 	text-align: center;
 	cursor: pointer;
+	z-index: 1;
 }
 
 .button:hover {
@@ -61,35 +68,25 @@
 }
 
 .small-button {
-	position: absolute;
+	/*position: absolute;*/
 	height: 20px;
 	width: 20px;
 }
 
 .close-button {
-	top: 170px;
-	left: 170px;
+	float: right;
+	margin-right: 20px;
 }
 
-.expand-button {
-	top: 170px;
-	left: 10px;
+.expand-button, .minimise-button {
+	/*So the expand button can lie on top of the minimise button*/
+	position: absolute;
+	left: 20px;
 }
 
-/*Only ever used inside diagram-container-big*/
-.minimise-button {
-	top: 470px;
-	left: 10px;
-}
-
-.diagram-container-big > .svg-container > .close-button {
-	top: 470px;
-	left: 470px;
-}
-
-.diagram-container-big > .svg-container > .expand-button {
-	top: 470px;
-	left: 10px;
+.diagram-container-big > .svg-container > .minimise-button {
+	left: 5px;
+	top: 5px;
 }
 
 .expr-cluster-select, .ortho-cluster-select {
