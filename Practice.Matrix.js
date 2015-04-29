@@ -163,11 +163,11 @@ Practice.Matrix.prototype.drawCircos = function() {
 		if ( !bigDiagramExists ) {
 			$( '.diagrams-container' ).append( $diagramContainerBig );
 			$diagramContainerBig.append( $( this ).parent() );
-			$svgContainer.append( $minimiseButton );
 
 			bigDiagramExists = true;
 			$( '.expand-button' ).css( 'pointer-events', 'none' );
 
+			$expandButton.hide();
 			$closeButton.hide();
 		}
 
@@ -177,16 +177,17 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 		$diagramContainerBig.detach();
 		$diagramContainer.append( $( this ).parent() );
-		$minimiseButton.detach();
 
 		bigDiagramExists = false;
 		$( '.expand-button' ).css( 'pointer-events', '' );
 
+		$expandButton.show();
 		$closeButton.show();
 
 	};
 
-	var $diagramContainer = $( '<div>' ).addClass( 'diagram-container' ),
+	var $diagramContainerContainer = $( '<div>' ).addClass( 'diagram-container-container' ),
+		$diagramContainer = $( '<div>' ).addClass( 'diagram-container' ),
 		$diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' ),
 		$svgContainer = $( '<div>' ).addClass( 'svg-container' ),
 		$svgInnerContainer = $( '<div>' ).addClass( 'svg-inner-container' ),
@@ -196,7 +197,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 			.addClass( 'button small-button close-button' )
 			.text( '×' )
 			.on( 'click', function() {
-				$diagramContainer.remove();
+				$diagramContainerContainer.remove();
 				$diagramContainerBig.remove();
 			} ),
 
@@ -210,9 +211,10 @@ Practice.Matrix.prototype.drawCircos = function() {
 			.text( '−' )
 			.on( 'click', minimise );
 
+	$svgContainer.append( $title, $minimiseButton, $expandButton, $closeButton, $svgInnerContainer );
 	$diagramContainer.append( $svgContainer );
-	$svgContainer.append( $title, $svgInnerContainer, $closeButton, $expandButton );
-	$( '.diagrams-container' ).append( $diagramContainer );
+	$diagramContainerContainer.append( $diagramContainer );
+	$( '.diagrams-container' ).append( $diagramContainerContainer );
 
 	// For accessing this in the findColor function
 	var that = this;
@@ -289,5 +291,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	        .style("opacity", opacity);
 	  };
 	}
+
+	// Give diagramsContainer a minimum height
+	$diagramContainer.css( 'min-height', $diagramContainerContainer.height() );
 
 };
