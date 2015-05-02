@@ -421,6 +421,11 @@ Practice.Matrix.prototype.drawCircos = function() {
             .x(function(d) { return x(d.condition); })
             .y(function(d) { return y(d.value); });
 
+        // Add the div for the hoverbox.
+        var hoverDiv = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
         // Adds the svg canvas
         var infoPanelsvg = d3.select($infoContainer[0])
             .append("svg")
@@ -448,7 +453,21 @@ Practice.Matrix.prototype.drawCircos = function() {
         .enter().append("circle")
             .attr("r", 2.5)
             .attr("cx", function(d) { return x(d.condition); })
-            .attr("cy", function(d) { return y(d.value); });
+            .attr("cy", function(d) { return y(d.value); })
+            .attr("cy", function(d) { return y(d.value); })
+            .on("mouseover", function(d) {
+            hoverDiv.transition()
+                .duration(200)
+                .style("opacity", .9);
+            hoverDiv.html(d.condition.toString() + '<br>' + d.value.toString())
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+            })
+            .on("mouseout", function(d) {
+                hoverDiv.transition()
+                    .duration(500)
+                    .style("opacity", 0)
+            });
         
         // Add the X Axis
         infoPanelsvg.append("g")
