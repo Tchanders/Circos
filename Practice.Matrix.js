@@ -69,7 +69,6 @@ Practice.Matrix.prototype.makeElements = function() {
 	type2NameUndefinedCount = 0;
 	for ( i = 0, ilen = this.expressionClusters.length; i < ilen; i++ ) {
 		clusterMembers = this.expressionClusters[i].member_ids;
-//        console.log(clusterMembers);
 		console.log( 'Cluster ' + i + ' has ' + clusterMembers.length + ' elements' );
 		for ( j = 0, jlen = clusterMembers.length; j < jlen; j++ ) {
 
@@ -285,7 +284,6 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .on("mouseover", fade(0))
 	    .on("mouseout", fade(1))
         .on("mousedown", function(a) { getFacets(a) });
-//        .on("mouseover", showInfoPanel());
 
 	svg.append("g")
 	    .attr("class", "chord")
@@ -321,22 +319,17 @@ Practice.Matrix.prototype.drawCircos = function() {
 
         console.log(clusterIndex + species);
         if ( clusterIndex + 1 <= orthoLen ) {
-//            console.log(that.orthologyClusters);
             console.log("we are in ortho");
             ogIds = that.orthologyClusters[clusterIndex].member_ids;
-//            console.log(ogIds);
         } else {
-//            console.log(that.expressionClusters);
             console.log("we are in expr");
             geneIds = that.expressionClusters[clusterIndex - orthoLen].member_ids;
-//            console.log(geneIds);
             
             var idsString = '(' + geneIds[0];
             for ( var i = 1, ilen = geneIds.length; i < ilen; i++ ) {
                 idsString += ' OR ' + geneIds[i];
             }
             idsString += ')';
-//            console.log(idsString);
             
             // Construct the request
             var promise = getFacetData( 'id',
@@ -349,50 +342,13 @@ Practice.Matrix.prototype.drawCircos = function() {
             $.when( promise ).done( function( v1i ) {
                 var buckets = v1i.facets.conditions.buckets;
                 showInfoPanel(buckets);
-//                d3.select($infoContainer).append("svg")
-//                return buckets;
             });
         }
     }
     
     function getFacetData(from, to, initialParameter, filter) {
-        var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter;
-//        console.log(query);
-        
-//        var facetOptionsObject = {
-//            'sum'       : 'sum(expression_value_d)',
-//            'sumsq'     : 'sumsq(expression_value_d)',
-//            'avg'       : 'avg(expression_value_d)'
-//        };
-//        
-//        var termsOptionsObject = {
-//            'field'     : 'condition_id',
-//            'numBuckets': true,
-//            'limit'     : 0,
-//            'sort'      : {'index': 'asc'},
-//            'facet'     : facetOptionsObject
-//        };
-//        
-//        var termsObject = {
-//            'terms': termsOptionsObject
-//        }
-//        
-//        var facetObject = {
-//            'conditions': termsObject
-//        };
-//        
-//        var data = {
-//            'q'		: query,
-//            'fq'    : 'gene_id:' + filter,
-//            'wt'	: 'json',
-//            'indent': 'true',
-//            'rows' 	: '0',
-//            'json.facet'    : facetObject
-//        };
-//        
-//        console.log(data);
-        
-        var data = {
+        var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter,
+            data = {
             'q'		: query,
             'fq'    : 'gene_id:' + filter,
             'wt'	: 'json',
@@ -437,9 +393,6 @@ Practice.Matrix.prototype.drawCircos = function() {
                 'value': buckets[i].avg
             });
         }
-//        console.log(expressionValueMeanValues);
-        // Construct the svg and append it to the graph
-        
         // Set the dimensions of the canvas / graph
         var margin = {top: 30, right: 20, bottom: 30, left: 50},
             width = 200 - margin.left - margin.right,
@@ -496,8 +449,6 @@ Practice.Matrix.prototype.drawCircos = function() {
         infoPanelsvg.append("g")
             .attr("class", "y axis")
             .call(yAxis);
-        
-//        return svg;
     }
     
 
