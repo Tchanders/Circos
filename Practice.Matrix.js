@@ -385,19 +385,23 @@ Practice.Matrix.prototype.drawCircos = function() {
     // Display information about the cluster that you are hovering over.
     function showInfoPanel(buckets) {
         // TODO Test if we are in the enlarged display
-        var expressionValueMeanValues = [];
+        var conditionsExpressionValues = [],
+            expressionValues = [];
         for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
-            expressionValueMeanValues.push({
+            conditionsExpressionValues.push({
                 'condition': i + 1,
                 'value': buckets[i].avg
             });
+            expressionValues.push(buckets[i].avg);
         }
+
+        var minExpressionValue = Math.min.apply(null, expressionValues);
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
         
         // Set the dimensions of the canvas / graph
-//        console.log('test');
-//        console.log($infoContainer.width(), $infoContainer.height());
         var margin = {top: 30, right: 20, bottom: 30, left: 50},
+            // The line plot indide info panel gets its dimensions from graphContainer
+            // maybe TODO ?
             width = $graphContainer.width() - margin.left - margin.right,
             height = $graphContainer.height() - margin.top - margin.bottom;
 
@@ -427,11 +431,11 @@ Practice.Matrix.prototype.drawCircos = function() {
                       "translate(" + margin.left + "," + margin.top + ")");
 
         // Get the data
-        data = expressionValueMeanValues;
+        data = conditionsExpressionValues;
         
         // Scale the range of the data
         x.domain(d3.extent(data, function(d) { return d.condition; }));
-        y.domain([0, d3.max(data, function(d) { return d.value; })]);
+        y.domain([minExpressionValue, d3.max(data, function(d) { return d.value; })]);
 
         // Add the valueline path.
         infoPanelsvg.append("path")
@@ -442,7 +446,7 @@ Practice.Matrix.prototype.drawCircos = function() {
         infoPanelsvg.selectAll("dot")
             .data(data)
         .enter().append("circle")
-            .attr("r", 3.5)
+            .attr("r", 2.5)
             .attr("cx", function(d) { return x(d.condition); })
             .attr("cy", function(d) { return y(d.value); });
         
@@ -460,5 +464,4 @@ Practice.Matrix.prototype.drawCircos = function() {
     
 	// Give diagramsContainer a minimum height
 	$diagramContainer.css( 'min-height', $diagramContainerContainer.height() );
-
 };

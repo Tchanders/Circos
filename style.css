@@ -50,6 +50,8 @@
 	border-width: 1px solid black;
     padding: 0px 15px 0px 15px;
 	z-index: 2;
+    background-color: white;
+/*    max-height: 345px;*/
 }
 
 .graph-container {
@@ -64,6 +66,7 @@
     float: right;
     width: 50%;
     overflow-y: auto;
+    height: 360x;
 /*	border: 1px solid green;*/
 }
 
