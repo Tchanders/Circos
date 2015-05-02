@@ -5,6 +5,7 @@
 }
 
 .svg-container {
+    position: relative;
 	width: 100%;
 }
 
@@ -28,22 +29,61 @@
 }
 
 .diagram-container-big {
+/*
 	position: absolute;
 	top: 50px;
 	left: 50px;
-	width: 50%;
+*/
+	width: 100%;
 	background-color: #FFFFFF;
+/*
 	border-style: solid;
 	border-width: 1px;
+*/
+}
+
+.popup-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 100%;
+    border-style: solid;
+	border-width: 1px;
+    padding: 0px 15px 0px 15px;
+/*    color: red;*/
 	z-index: 2;
+}
+
+.graph-container {
+    position: relative;
+    float: left;
+    width: 50%;
+    border-style: solid;
+	border-width: 1px;
+/*    color: blue;*/
+}
+
+.info-container {
+    position: relative;
+    float: right;
+    width: 50%;
+    border-style: solid;
+	border-width: 1px;
+/*    color: green;*/
 }
 
 .diagram-title {
 	position: absolute;
-	top: 0px;
 	width: 100%;
 	font-size: 18px;
 	text-align: center;
+}
+
+.info-title {
+	position: absolute;
+	width: 100%;
+	text-align: center;
+	font-size: 24px;
 }
 
 .diagram-container-big > .svg-container > .diagram-title {
@@ -98,4 +138,22 @@
   fill-opacity: .67;
   stroke: #000;
   stroke-width: .5px;
+}
+
+/*From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5*/
+body {
+    font: 12px Arial;
+}
+
+path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
 }

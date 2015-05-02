@@ -69,6 +69,7 @@ Practice.Matrix.prototype.makeElements = function() {
 	type2NameUndefinedCount = 0;
 	for ( i = 0, ilen = this.expressionClusters.length; i < ilen; i++ ) {
 		clusterMembers = this.expressionClusters[i].member_ids;
+//        console.log(clusterMembers);
 		console.log( 'Cluster ' + i + ' has ' + clusterMembers.length + ' elements' );
 		for ( j = 0, jlen = clusterMembers.length; j < jlen; j++ ) {
 
@@ -163,7 +164,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 		// Don't run if another diagram is already maximised
 		if ( !bigDiagramExists ) {
-			$( '.diagrams-container' ).append( $diagramContainerBig );
+			$( '.diagrams-container' ).append( $popupContainer );
 			$diagramContainerBig.append( $( this ).parent() );
 
 			bigDiagramExists = true;
@@ -178,7 +179,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	var minimise = function() {
 
-		$diagramContainerBig.detach();
+		$popupContainer.detach();
 		$diagramContainer.append( $( this ).parent() );
 
 		bigDiagramExists = false;
@@ -190,12 +191,16 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	};
 
-	var $diagramContainerContainer = $( '<div>' ).addClass( 'diagram-container-container' ),
+	var $popupContainer = $( '<div>' ).addClass( 'popup-container' ),
+	    $graphContainer = $( '<div>' ).addClass( 'graph-container' ),
+	    $infoContainer = $( '<div>' ).addClass( 'info-container' ),
+        $diagramContainerContainer = $( '<div>' ).addClass( 'diagram-container-container' ),
 		$diagramContainer = $( '<div>' ).addClass( 'diagram-container' ),
 		$diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' ),
 		$svgContainer = $( '<div>' ).addClass( 'svg-container' ),
 		$svgInnerContainer = $( '<div>' ).addClass( 'svg-inner-container' ),
 		$title = $( '<p>' ).addClass( 'diagram-title' ).text( this.species ),
+		$infoTitle = $( '<p>' ).addClass( 'info-title' ).text( "hover over a cluster for information" ),
 
 		$closeButton = $( '<div>' )
 			.addClass( 'button small-button close-button' )
@@ -219,6 +224,9 @@ Practice.Matrix.prototype.drawCircos = function() {
 	$svgContainer.append( $title, $minimiseButton, $expandButton, $closeButton, $svgInnerContainer );
 	$diagramContainer.append( $svgContainer );
 	$diagramContainerContainer.append( $diagramContainer );
+    $graphContainer.append( $diagramContainerBig );
+    $infoContainer.append( $infoTitle );
+    $popupContainer.append( $graphContainer, $infoContainer );
 	$( '.diagrams-container' ).append( $diagramContainerContainer );
 
 	// For accessing this in the findColor function
@@ -275,7 +283,9 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .style("stroke", function(d) { return findColor(d.index); })
 	    .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
 	    .on("mouseover", fade(0))
-	    .on("mouseout", fade(1));
+	    .on("mouseout", fade(1))
+        .on("mousedown", function(a) { getFacets(a) });
+//        .on("mouseover", showInfoPanel());
 
 	svg.append("g")
 	    .attr("class", "chord")
@@ -296,6 +306,200 @@ Practice.Matrix.prototype.drawCircos = function() {
 	        .style("opacity", opacity);
 	  };
 	}
+    
+    function getFacets (a) {
+        var orthoLen = that.numorthologyClusters,
+            exprLen = that.numexpressionClusters,
+            clusterIndex = a.index,
+            species = that.species;
+        
+        if ( species === 'Anopheles') {
+            species = 'Anopheles gambiae';
+        } else {
+            species = 'Plasmodium falciparum';
+        }
+
+        console.log(clusterIndex + species);
+        if ( clusterIndex + 1 <= orthoLen ) {
+//            console.log(that.orthologyClusters);
+            console.log("we are in ortho");
+            ogIds = that.orthologyClusters[clusterIndex].member_ids;
+//            console.log(ogIds);
+        } else {
+//            console.log(that.expressionClusters);
+            console.log("we are in expr");
+            geneIds = that.expressionClusters[clusterIndex - orthoLen].member_ids;
+//            console.log(geneIds);
+            
+            var idsString = '(' + geneIds[0];
+            for ( var i = 1, ilen = geneIds.length; i < ilen; i++ ) {
+                idsString += ' OR ' + geneIds[i];
+            }
+            idsString += ')';
+//            console.log(idsString);
+            
+            // Construct the request
+            var promise = getFacetData( 'id',
+                                        'condition_id',
+                                        'type:condition AND species_s:"' + species + '"',
+                                        idsString,
+                                        species
+            );
+            
+            $.when( promise ).done( function( v1i ) {
+                var buckets = v1i.facets.conditions.buckets;
+                showInfoPanel(buckets);
+//                d3.select($infoContainer).append("svg")
+//                return buckets;
+            });
+        }
+    }
+    
+    function getFacetData(from, to, initialParameter, filter) {
+        var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter;
+//        console.log(query);
+        
+//        var facetOptionsObject = {
+//            'sum'       : 'sum(expression_value_d)',
+//            'sumsq'     : 'sumsq(expression_value_d)',
+//            'avg'       : 'avg(expression_value_d)'
+//        };
+//        
+//        var termsOptionsObject = {
+//            'field'     : 'condition_id',
+//            'numBuckets': true,
+//            'limit'     : 0,
+//            'sort'      : {'index': 'asc'},
+//            'facet'     : facetOptionsObject
+//        };
+//        
+//        var termsObject = {
+//            'terms': termsOptionsObject
+//        }
+//        
+//        var facetObject = {
+//            'conditions': termsObject
+//        };
+//        
+//        var data = {
+//            'q'		: query,
+//            'fq'    : 'gene_id:' + filter,
+//            'wt'	: 'json',
+//            'indent': 'true',
+//            'rows' 	: '0',
+//            'json.facet'    : facetObject
+//        };
+//        
+//        console.log(data);
+        
+        var data = {
+            'q'		: query,
+            'fq'    : 'gene_id:' + filter,
+            'wt'	: 'json',
+            'indent': 'true',
+            'rows' 	: '0',
+            'json.facet'    : "{" +
+                "conditions    : {" +
+                    "terms : {" +
+                        "field : 'condition_id'," +
+                        "numBuckets    : true," +
+                        "limit : 0," +
+                        "sort  : { index: 'asc' }," +
+                        "facet : {" +
+                            "sum   : 'sum(expression_value_d)'," +
+                            "sumsq : 'sumsq(expression_value_d)'," +
+                            "avg   : 'avg(expression_value_d)'," +
+                            "max   : 'max(expression_value_d)'," +
+                            "min   : 'min(expression_value_d)'," +
+                            "percentiles    : 'percentile(expression_value_d, 25, 50, 75, 99, 99.9)'" +
+                        "}" +
+                    "}" +
+                "}" +
+            "}"
+        };
+
+        return $.ajax({
+            url: 'http://localhost:8983/solr/circos/query',
+            method: "POST",
+            dataType: 'jsonp',
+            jsonp: 'json.wrf',
+            data: data
+        } );
+    }
+
+    // Display information about the cluster that you are hovering over.
+    function showInfoPanel(buckets) {
+        // TODO Test if we are in the enlarged display
+        var expressionValueMeanValues = [];
+        for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
+            expressionValueMeanValues.push({
+                'condition': i + 1,
+                'value': buckets[i].avg
+            });
+        }
+//        console.log(expressionValueMeanValues);
+        // Construct the svg and append it to the graph
+        
+        // Set the dimensions of the canvas / graph
+        var margin = {top: 30, right: 20, bottom: 30, left: 50},
+            width = 200 - margin.left - margin.right,
+            height = 300 - margin.top - margin.bottom;
+
+        // Set the ranges
+        var x = d3.scale.linear().range([0, width]);
+        var y = d3.scale.linear().range([height, 0]);
+
+        // Define the axes
+        var xAxis = d3.svg.axis().scale(x)
+            .orient("bottom").ticks(5);
+
+        var yAxis = d3.svg.axis().scale(y)
+            .orient("left").ticks(5);
+
+        // Define the line
+        var valueline = d3.svg.line()
+            .x(function(d) { return x(d.condition); })
+            .y(function(d) { return y(d.value); });
+
+        console.log($infoContainer[1]);
+        if ( $infoContainer === undefined ) {
+            console.log('test');
+        }
+        // Adds the svg canvas
+        var infoPanelsvg = d3.select($infoContainer[0])
+            .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+                .attr("transform", 
+                      "translate(" + margin.left + "," + margin.top + ")");
+
+        // Get the data
+        data = expressionValueMeanValues;
+        
+        // Scale the range of the data
+        x.domain(d3.extent(data, function(d) { return d.condition; }));
+        y.domain([0, d3.max(data, function(d) { return d.value; })]);
+
+        // Add the valueline path.
+        infoPanelsvg.append("path")
+            .attr("class", "line")
+            .attr("d", valueline(data));
+
+        // Add the X Axis
+        infoPanelsvg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+        // Add the Y Axis
+        infoPanelsvg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
+        
+//        return svg;
+    }
+    
 
 	// Give diagramsContainer a minimum height
 	$diagramContainer.css( 'min-height', $diagramContainerContainer.height() );
