@@ -335,8 +335,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             var promise = getFacetData( 'id',
                                         'condition_id',
                                         'type:condition AND species_s:"' + species + '"',
-                                        idsString,
-                                        species
+                                        idsString
             );
             
             $.when( promise ).done( function( v1i ) {
@@ -393,10 +392,14 @@ Practice.Matrix.prototype.drawCircos = function() {
                 'value': buckets[i].avg
             });
         }
+        /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
+        
         // Set the dimensions of the canvas / graph
+//        console.log('test');
+//        console.log($infoContainer.width(), $infoContainer.height());
         var margin = {top: 30, right: 20, bottom: 30, left: 50},
-            width = 200 - margin.left - margin.right,
-            height = 300 - margin.top - margin.bottom;
+            width = $graphContainer.width() - margin.left - margin.right,
+            height = $graphContainer.height() - margin.top - margin.bottom;
 
         // Set the ranges
         var x = d3.scale.linear().range([0, width]);
@@ -414,10 +417,6 @@ Practice.Matrix.prototype.drawCircos = function() {
             .x(function(d) { return x(d.condition); })
             .y(function(d) { return y(d.value); });
 
-        console.log($infoContainer[1]);
-        if ( $infoContainer === undefined ) {
-            console.log('test');
-        }
         // Adds the svg canvas
         var infoPanelsvg = d3.select($infoContainer[0])
             .append("svg")
@@ -439,6 +438,14 @@ Practice.Matrix.prototype.drawCircos = function() {
             .attr("class", "line")
             .attr("d", valueline(data));
 
+        // Add the dots 
+        infoPanelsvg.selectAll("dot")
+            .data(data)
+        .enter().append("circle")
+            .attr("r", 3.5)
+            .attr("cx", function(d) { return x(d.condition); })
+            .attr("cy", function(d) { return y(d.value); });
+        
         // Add the X Axis
         infoPanelsvg.append("g")
             .attr("class", "x axis")
@@ -451,7 +458,6 @@ Practice.Matrix.prototype.drawCircos = function() {
             .call(yAxis);
     }
     
-
 	// Give diagramsContainer a minimum height
 	$diagramContainer.css( 'min-height', $diagramContainerContainer.height() );
 

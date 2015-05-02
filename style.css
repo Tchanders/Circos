@@ -47,10 +47,8 @@
     top: 10px;
     left: 10px;
     width: 100%;
-    border-style: solid;
-	border-width: 1px;
+	border-width: 1px solid black;
     padding: 0px 15px 0px 15px;
-/*    color: red;*/
 	z-index: 2;
 }
 
@@ -58,18 +56,15 @@
     position: relative;
     float: left;
     width: 50%;
-    border-style: solid;
-	border-width: 1px;
-/*    color: blue;*/
+/*	border: 1px solid blue;*/
 }
 
 .info-container {
     position: relative;
     float: right;
     width: 50%;
-    border-style: solid;
-	border-width: 1px;
-/*    color: green;*/
+    overflow-y: auto;
+/*	border: 1px solid green;*/
 }
 
 .diagram-title {
