@@ -309,7 +309,8 @@ Practice.Matrix.prototype.drawCircos = function() {
         var orthoLen = that.numorthologyClusters,
             exprLen = that.numexpressionClusters,
             clusterIndex = a.index,
-            species = that.species;
+            species = that.species,
+            ids;
         
         if ( species === 'Anopheles') {
             species = 'Anopheles gambiae';
@@ -320,29 +321,30 @@ Practice.Matrix.prototype.drawCircos = function() {
         console.log(clusterIndex + species);
         if ( clusterIndex + 1 <= orthoLen ) {
             console.log("we are in ortho");
-            ogIds = that.orthologyClusters[clusterIndex].member_ids;
+            ids = that.orthologyClusters[clusterIndex].member_ids;
         } else {
             console.log("we are in expr");
-            geneIds = that.expressionClusters[clusterIndex - orthoLen].member_ids;
-            
-            var idsString = '(' + geneIds[0];
-            for ( var i = 1, ilen = geneIds.length; i < ilen; i++ ) {
-                idsString += ' OR ' + geneIds[i];
-            }
-            idsString += ')';
-            
-            // Construct the request
-            var promise = getFacetData( 'id',
-                                        'condition_id',
-                                        'type:condition AND species_s:"' + species + '"',
-                                        idsString
-            );
-            
-            $.when( promise ).done( function( v1i ) {
-                var buckets = v1i.facets.conditions.buckets;
-                showInfoPanel(buckets);
-            });
+            ids = that.expressionClusters[clusterIndex - orthoLen].member_ids;
         }
+            
+        var idsString = '(' + ids[0];
+        for ( var i = 1, ilen = ids.length; i < ilen; i++ ) {
+            idsString += ' OR ' + ids[i];
+        }
+        idsString += ')';
+
+        // Construct the request
+        var promise = getFacetData( 'id',
+                                    'condition_id',
+                                    'type:condition AND species_s:"' + species + '"',
+                                    idsString
+        );
+
+        $.when( promise ).done( function( v1i ) {
+            var buckets = v1i.facets.conditions.buckets;
+            showInfoPanel(buckets);
+        });
+//        }
     }
     
     function getFacetData(from, to, initialParameter, filter) {
