@@ -390,7 +390,8 @@ Practice.Matrix.prototype.drawCircos = function() {
         for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
             conditionsExpressionValues.push({
                 'condition': i + 1,
-                'value': buckets[i].avg
+                'value': buckets[i].avg,
+                'conditionId': buckets[i].val
             });
             expressionValues.push(buckets[i].avg);
         }
@@ -454,14 +455,27 @@ Practice.Matrix.prototype.drawCircos = function() {
             .attr("r", 2.5)
             .attr("cx", function(d) { return x(d.condition); })
             .attr("cy", function(d) { return y(d.value); })
-            .attr("cy", function(d) { return y(d.value); })
             .on("mouseover", function(d) {
-            hoverDiv.transition()
-                .duration(200)
-                .style("opacity", .9);
-            hoverDiv.html(d.condition.toString() + '<br>' + d.value.toString())
-                .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
+                var conditionId = d.conditionId,
+                    promise = getConditionInfo(conditionId),
+                    conditionName;
+
+                $.when(promise).done(function (reply) {
+                    // The response json array always has length 1
+                    conditionName = reply.response.docs[0].name;
+                    console.log('inside' + conditionName);
+                });
+                console.log('outside' + conditionName);
+
+                // This should be inside the promise callback but then the
+                // d3 events are lost. TODO.
+                hoverDiv.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+
+                hoverDiv.html(d.condition + '<br/>' + d.value)
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
             })
             .on("mouseout", function(d) {
                 hoverDiv.transition()
@@ -479,6 +493,22 @@ Practice.Matrix.prototype.drawCircos = function() {
         infoPanelsvg.append("g")
             .attr("class", "y axis")
             .call(yAxis);
+    }
+    
+    function getConditionInfo(conditionId) {
+        var data = {
+            'q'     : 'id:' + conditionId,
+            'wt'    : 'json',
+            'indent': 'true'
+        }
+        
+        return $.ajax({
+            url: 'http://localhost:8983/solr/circos/query',
+            method: "POST",
+            dataType: 'jsonp',
+            jsonp: 'json.wrf',
+            data: data
+        } );
     }
     
 	// Give diagramsContainer a minimum height
