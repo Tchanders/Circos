@@ -333,47 +333,76 @@ Practice.Matrix.prototype.drawCircos = function() {
         }
         idsString += ')';
 
-        // Construct the request
-        var promise = getFacetData( 'id',
+        var promise;
+        if ( clusterIndex + 1 <= orthoLen ) {
+            promise = getFacetData( '',
+                                    '',
+                                    species,
+                                    idsString );
+        } else {
+            // Construct the request
+            promise = getFacetData( 'id',
                                     'condition_id',
                                     'type:condition AND species_s:"' + species + '"',
-                                    idsString
-        );
+                                    idsString );
+        }
 
         $.when( promise ).done( function( v1i ) {
-            var buckets = v1i.facets.conditions.buckets;
-            showInfoPanel(buckets);
+            if ( clusterIndex + 1 <= orthoLen ) {
+                var buckets = v1i.response.docs;
+                showInfoPanel(buckets, 'ortho');
+            } else {
+                var buckets = v1i.facets.conditions.buckets;
+                showInfoPanel(buckets, 'expr');
+            }
         });
-//        }
     }
     
     function getFacetData(from, to, initialParameter, filter) {
-        var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter,
+        var data;
+        if ( from ) {
+            var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter;
             data = {
-            'q'		: query,
-            'fq'    : 'gene_id:' + filter,
-            'wt'	: 'json',
-            'indent': 'true',
-            'rows' 	: '0',
-            'json.facet'    : "{" +
-                "conditions    : {" +
-                    "terms : {" +
-                        "field : 'condition_id'," +
-                        "numBuckets    : true," +
-                        "limit : 0," +
-                        "sort  : { index: 'asc' }," +
-                        "facet : {" +
-                            "sum   : 'sum(expression_value_d)'," +
-                            "sumsq : 'sumsq(expression_value_d)'," +
-                            "avg   : 'avg(expression_value_d)'," +
-                            "max   : 'max(expression_value_d)'," +
-                            "min   : 'min(expression_value_d)'," +
-                            "percentiles    : 'percentile(expression_value_d, 25, 50, 75, 99, 99.9)'" +
+                'q'		: query,
+                'fq'    : 'gene_id:' + filter,
+                'wt'	: 'json',
+                'indent': 'true',
+                'rows' 	: '0',
+                'json.facet'    : "{" +
+                    "conditions    : {" +
+                        "terms : {" +
+                            "field : 'condition_id'," +
+                            "numBuckets    : true," +
+                            "limit : 0," +
+                            "sort  : { index: 'asc' }," +
+                            "facet : {" +
+                                "sum   : 'sum(expression_value_d)'," +
+                                "sumsq : 'sumsq(expression_value_d)'," +
+                                "avg   : 'avg(expression_value_d)'," +
+                                "max   : 'max(expression_value_d)'," +
+                                "min   : 'min(expression_value_d)'," +
+                                "percentiles    : 'percentile(expression_value_d, 25, 50, 75, 99, 99.9)'" +
+                            "}" +
                         "}" +
                     "}" +
-                "}" +
-            "}"
-        };
+                "}"
+            };
+        } else {
+            var speciesFilter;
+            if ( initialParameter.indexOf('gambiae') > -1 ) {
+                speciesFilter = 'id:MZ*';
+            } else {
+                speciesFilter = 'id:PZ*';
+            }
+            
+            data = {
+                'q'     : 'type:og AND ' + speciesFilter,
+                'fq'    : 'id:' + filter,
+                'wt'    : 'json',
+                'indent': 'true',
+                'rows'  : '10000'
+            }
+        }
 
         return $.ajax({
             url: 'http://localhost:8983/solr/circos/query',
@@ -385,20 +414,36 @@ Practice.Matrix.prototype.drawCircos = function() {
     }
 
     // Display information about the cluster that you are hovering over.
-    function showInfoPanel(buckets) {
+    function showInfoPanel(buckets, dataset) {
         // TODO Test if we are in the enlarged display
         var conditionsExpressionValues = [],
-            expressionValues = [];
-        for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
-            conditionsExpressionValues.push({
-                'condition': i + 1,
-                'value': buckets[i].avg,
-                'conditionId': buckets[i].val
-            });
-            expressionValues.push(buckets[i].avg);
+            expressionValues = [],
+            minExpressionValue,
+//            evoRates = [],
+//            speciesRatios = [],
+            ogClusterStats = [];
+        
+        if ( dataset === 'expr' ) {
+            for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
+                conditionsExpressionValues.push({
+                    'condition': i + 1,
+                    'value': buckets[i].avg,
+                    'conditionId': buckets[i].val
+                });
+                expressionValues.push(buckets[i].avg);
+            }
+            minExpressionValue = Math.min.apply(null, expressionValues);
+        } else {
+            for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
+                ogClusterStats.push({
+                    'evoRate': buckets[i].evo_rate_f,
+                    'speciesRatio': buckets[i].frac_species_f,
+                    'ogid': buckets[i].id
+                });
+            }
         }
+        console.log(ogClusterStats);
 
-        var minExpressionValue = Math.min.apply(null, expressionValues);
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
         
         // Set the dimensions of the canvas / graph
@@ -420,9 +465,16 @@ Practice.Matrix.prototype.drawCircos = function() {
             .orient("left").ticks(5);
 
         // Define the line
-        var valueline = d3.svg.line()
-            .x(function(d) { return x(d.condition); })
-            .y(function(d) { return y(d.value); });
+        var valueline;
+        if ( dataset === 'expr' ) {
+            valueline = d3.svg.line()
+                .x(function(d) { return x(d.condition); })
+                .y(function(d) { return y(d.value); });
+        } else {
+            valueline = d3.svg.line()
+                .x(function(d) { return x(d.evoRate); })
+                .y(function(d) { return y(d.speciesRatio); });
+        }
 
         // Add the div for the hoverbox.
         var hoverDiv = d3.select("body").append("div")
@@ -439,11 +491,21 @@ Practice.Matrix.prototype.drawCircos = function() {
                       "translate(" + margin.left + "," + margin.top + ")");
 
         // Get the data
-        data = conditionsExpressionValues;
+        var data;
+        if ( dataset === 'expr' ) {
+            data = conditionsExpressionValues;
+        } else {
+            data = ogClusterStats;
+        }
         
         // Scale the range of the data
-        x.domain(d3.extent(data, function(d) { return d.condition; }));
-        y.domain([minExpressionValue, d3.max(data, function(d) { return d.value; })]);
+        if ( dataset === 'expr' ) {
+            x.domain(d3.extent(data, function(d) { return d.condition; }));
+            y.domain([minExpressionValue, d3.max(data, function(d) { return d.value; })]);
+        } else {
+            x.domain(d3.extent(data, function(d) { return d.evoRate; }));
+            y.domain([0, d3.max(data, function(d) { return d.speciesRatio; })]);
+        }
 
         // Add the valueline path.
         infoPanelsvg.append("path")
