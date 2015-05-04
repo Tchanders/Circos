@@ -418,7 +418,8 @@ Practice.Matrix.prototype.drawCircos = function() {
         // TODO Test if we are in the enlarged display
         var conditionsExpressionValues = [],
             expressionValues = [],
-            minExpressionValue,
+            minExpressionValue = 10000,
+            minSpeciesRatio = 10000,
 //            evoRates = [],
 //            speciesRatios = [],
             ogClusterStats = [];
@@ -430,9 +431,11 @@ Practice.Matrix.prototype.drawCircos = function() {
                     'value': buckets[i].avg,
                     'conditionId': buckets[i].val
                 });
-                expressionValues.push(buckets[i].avg);
+                
+                if ( buckets[i].avg < minExpressionValue ) {
+                    minExpressionValue = buckets[i].avg;
+                }
             }
-            minExpressionValue = Math.min.apply(null, expressionValues);
         } else {
             for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
                 ogClusterStats.push({
@@ -440,6 +443,10 @@ Practice.Matrix.prototype.drawCircos = function() {
                     'speciesRatio': buckets[i].frac_species_f,
                     'ogid': buckets[i].id
                 });
+                
+                if ( buckets[i].frac_species_f < minSpeciesRatio ) {
+                    minSpeciesRatio = buckets[i].frac_species_f;
+                }
             }
         }
         console.log(ogClusterStats);
@@ -470,11 +477,12 @@ Practice.Matrix.prototype.drawCircos = function() {
             valueline = d3.svg.line()
                 .x(function(d) { return x(d.condition); })
                 .y(function(d) { return y(d.value); });
-        } else {
-            valueline = d3.svg.line()
-                .x(function(d) { return x(d.evoRate); })
-                .y(function(d) { return y(d.speciesRatio); });
         }
+//        else {
+//            valueline = d3.svg.line()
+//                .x(function(d) { return x(d.evoRate); })
+//                .y(function(d) { return y(d.speciesRatio); });
+//        }
 
         // Add the div for the hoverbox.
         var hoverDiv = d3.select("body").append("div")
@@ -504,48 +512,59 @@ Practice.Matrix.prototype.drawCircos = function() {
             y.domain([minExpressionValue, d3.max(data, function(d) { return d.value; })]);
         } else {
             x.domain(d3.extent(data, function(d) { return d.evoRate; }));
-            y.domain([0, d3.max(data, function(d) { return d.speciesRatio; })]);
+            y.domain([minSpeciesRatio, d3.max(data, function(d) { return d.speciesRatio; })]);
         }
 
         // Add the valueline path.
-        infoPanelsvg.append("path")
-            .attr("class", "line")
-            .attr("d", valueline(data));
+        if ( dataset === 'expr' ) {
+            infoPanelsvg.append("path")
+                .attr("class", "line")
+                .attr("d", valueline(data));
+        }
 
         // Add the dots 
-        infoPanelsvg.selectAll("dot")
-            .data(data)
-        .enter().append("circle")
-            .attr("r", 2.5)
-            .attr("cx", function(d) { return x(d.condition); })
-            .attr("cy", function(d) { return y(d.value); })
-            .on("mouseover", function(d) {
-                var conditionId = d.conditionId,
-                    promise = getConditionInfo(conditionId),
-                    conditionName;
+        if ( dataset === 'expr' ) {
+            infoPanelsvg.selectAll("dot")
+                .data(data)
+            .enter().append("circle")
+                .attr("r", 2.5)
+                .attr("cx", function(d) { return x(d.condition); })
+                .attr("cy", function(d) { return y(d.value); })
+                .on("mouseover", function(d) {
+                    var conditionId = d.conditionId,
+                        promise = getConditionInfo(conditionId),
+                        conditionName;
 
-                $.when(promise).done(function (reply) {
-                    // The response json array always has length 1
-                    conditionName = reply.response.docs[0].name;
-                    console.log('inside' + conditionName);
+                    $.when(promise).done(function (reply) {
+                        // The response json array always has length 1
+                        conditionName = reply.response.docs[0].name;
+                        console.log('inside' + conditionName);
+                    });
+                    console.log('outside' + conditionName);
+
+                    // This should be inside the promise callback but then the
+                    // d3 events are lost. TODO.
+                    hoverDiv.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+
+                    hoverDiv.html(d.condition + '<br/>' + d.value)
+                        .style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                })
+                .on("mouseout", function(d) {
+                    hoverDiv.transition()
+                        .duration(500)
+                        .style("opacity", 0)
                 });
-                console.log('outside' + conditionName);
-
-                // This should be inside the promise callback but then the
-                // d3 events are lost. TODO.
-                hoverDiv.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-
-                hoverDiv.html(d.condition + '<br/>' + d.value)
-                    .style("left", (d3.event.pageX) + "px")
-                    .style("top", (d3.event.pageY - 28) + "px");
-            })
-            .on("mouseout", function(d) {
-                hoverDiv.transition()
-                    .duration(500)
-                    .style("opacity", 0)
-            });
+        } else {
+            infoPanelsvg.selectAll("dot")
+                .data(data)
+            .enter().append("circle")
+                .attr("r", 1.5)
+                .attr("cx", function(d) { return x(d.evoRate); })
+                .attr("cy", function(d) { return y(d.speciesRatio); });
+        }
         
         // Add the X Axis
         infoPanelsvg.append("g")
