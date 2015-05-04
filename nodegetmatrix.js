@@ -1,12 +1,14 @@
 var request = require( 'request' );
+var ind = require( './nodechisquaredindependence' );
 var geneToOG = require( './geneToOG.json' );
 require( './init' );
 require( './Practice.NodeMatrix' );
 require( './Practice.Element' );
 
+var exports = module.exports = {};
 
 // Get data function
-function getData( field, value, filter ) {
+exports.getMatrix = function( field, value, filter ) {
 
 	var m, matrix;
 
@@ -49,11 +51,13 @@ function getData( field, value, filter ) {
 			m.makeElementMatrix();
 			m.makenumMatrix();
 			matrix = m.numMatrix;
-			console.log( matrix );
+			results = ind.calculate( matrix );
+
+			console.log( value );
+			console.log( 'chi-squared: ' + results[0] );
+			console.log( 'p-value: ' + results[1] );
 
 		}
 	} );
 
-}
-
-getData( 'clustering_id', '(anoph_expr_cluster_5 OR anoph_ortho_cluster_5)', 'clustering_id,member_ids' );
+};

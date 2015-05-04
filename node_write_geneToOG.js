@@ -1,7 +1,12 @@
 var request = require( 'request' );
 var fs = require( 'fs' );
 
-// Get data function
+/**
+ * Write a dictionary of genes to orthologous groups to a json file
+ * The dictionary contains all of the genes and orthologous groups in the solr database
+ *
+ * @return {undefined}
+ */
 function writeDictionary() {
 
 	// Dictionary that will be populated then written to file
