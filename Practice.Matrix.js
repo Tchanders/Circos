@@ -350,10 +350,10 @@ Practice.Matrix.prototype.drawCircos = function() {
         $.when( promise ).done( function( v1i ) {
             if ( clusterIndex + 1 <= orthoLen ) {
                 var buckets = v1i.response.docs;
-                showInfoPanel(buckets, 'ortho');
+                showInfoPanelOrtho(buckets, 'ortho');
             } else {
                 var buckets = v1i.facets.conditions.buckets;
-                showInfoPanel(buckets, 'expr');
+                showInfoPanelExpr(buckets, 'expr');
             }
         });
     }
@@ -414,42 +414,23 @@ Practice.Matrix.prototype.drawCircos = function() {
     }
 
     // Display information about the cluster that you are hovering over.
-    function showInfoPanel(buckets, dataset) {
+    function showInfoPanelExpr(buckets) {
         // TODO Test if we are in the enlarged display
         var conditionsExpressionValues = [],
             expressionValues = [],
-            minExpressionValue = 10000,
-            minSpeciesRatio = 10000,
-//            evoRates = [],
-//            speciesRatios = [],
-            ogClusterStats = [];
+            minExpressionValue = 10000;
         
-        if ( dataset === 'expr' ) {
-            for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
-                conditionsExpressionValues.push({
-                    'condition': i + 1,
-                    'value': buckets[i].avg,
-                    'conditionId': buckets[i].val
-                });
-                
-                if ( buckets[i].avg < minExpressionValue ) {
-                    minExpressionValue = buckets[i].avg;
-                }
-            }
-        } else {
-            for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
-                ogClusterStats.push({
-                    'evoRate': buckets[i].evo_rate_f,
-                    'speciesRatio': buckets[i].frac_species_f,
-                    'ogid': buckets[i].id
-                });
-                
-                if ( buckets[i].frac_species_f < minSpeciesRatio ) {
-                    minSpeciesRatio = buckets[i].frac_species_f;
-                }
+        for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
+            conditionsExpressionValues.push({
+                'condition': i + 1,
+                'value': buckets[i].avg,
+                'conditionId': buckets[i].val
+            });
+
+            if ( buckets[i].avg < minExpressionValue ) {
+                minExpressionValue = buckets[i].avg;
             }
         }
-        console.log(ogClusterStats);
 
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
         
@@ -472,17 +453,9 @@ Practice.Matrix.prototype.drawCircos = function() {
             .orient("left").ticks(5);
 
         // Define the line
-        var valueline;
-        if ( dataset === 'expr' ) {
-            valueline = d3.svg.line()
-                .x(function(d) { return x(d.condition); })
-                .y(function(d) { return y(d.value); });
-        }
-//        else {
-//            valueline = d3.svg.line()
-//                .x(function(d) { return x(d.evoRate); })
-//                .y(function(d) { return y(d.speciesRatio); });
-//        }
+        var valueline = d3.svg.line()
+            .x(function(d) { return x(d.condition); })
+            .y(function(d) { return y(d.value); });
 
         // Add the div for the hoverbox.
         var hoverDiv = d3.select("body").append("div")
@@ -499,75 +472,133 @@ Practice.Matrix.prototype.drawCircos = function() {
                       "translate(" + margin.left + "," + margin.top + ")");
 
         // Get the data
-        var data;
-        if ( dataset === 'expr' ) {
-            data = conditionsExpressionValues;
-        } else {
-            data = ogClusterStats;
-        }
+        var data = conditionsExpressionValues;
         
         // Scale the range of the data
-        if ( dataset === 'expr' ) {
-            x.domain(d3.extent(data, function(d) { return d.condition; }));
-            y.domain([minExpressionValue, d3.max(data, function(d) { return d.value; })]);
-        } else {
-            x.domain(d3.extent(data, function(d) { return d.evoRate; }));
-            y.domain([minSpeciesRatio, d3.max(data, function(d) { return d.speciesRatio; })]);
-        }
+        x.domain(d3.extent(data, function(d) { return d.condition; }));
+        y.domain([minExpressionValue, d3.max(data, function(d) { return d.value; })]);
 
         // Add the valueline path.
-        if ( dataset === 'expr' ) {
-            infoPanelsvg.append("path")
-                .attr("class", "line")
-                .attr("d", valueline(data));
-        }
+        infoPanelsvg.append("path")
+            .attr("class", "line")
+            .attr("d", valueline(data));
 
         // Add the dots 
-        if ( dataset === 'expr' ) {
-            infoPanelsvg.selectAll("dot")
-                .data(data)
-            .enter().append("circle")
-                .attr("r", 2.5)
-                .attr("cx", function(d) { return x(d.condition); })
-                .attr("cy", function(d) { return y(d.value); })
-                .on("mouseover", function(d) {
-                    var conditionId = d.conditionId,
-                        promise = getConditionInfo(conditionId),
-//                        promise = PostToSolr(conditionId, [], 1, false),
-                        conditionName,
-                        xcoord = d3.event.pageX,
-                        ycoord = d3.event.pageY;
+        infoPanelsvg.selectAll("dot")
+            .data(data)
+        .enter().append("circle")
+            .attr("r", 2.5)
+            .attr("cx", function(d) { return x(d.condition); })
+            .attr("cy", function(d) { return y(d.value); })
+            .on("mouseover", function(d) {
+                var conditionId = d.conditionId,
+                    promise = getConditionInfo(conditionId),
+//                    promise = PostToSolr(conditionId, [], 1, false),
+                    conditionName,
+                    xcoord = d3.event.pageX,
+                    ycoord = d3.event.pageY;
 
-                    $.when(promise).done(function (reply) {
-                        // The response json array always has length 1
-                        conditionName = reply.response.docs[0].name;
-                        console.log('inside' + conditionName);
-                        hoverDiv.transition()
-                            .duration(200)
-                            .style("opacity", .9);
-
-                        hoverDiv.html(conditionName + '<br/>' + d.value)
-                            .style("left", xcoord + "px")
-                            .style("top", ycoord + "px");
-                    });
-                    console.log('outside' + conditionName);
-
-                    // This should be inside the promise callback but then the
-                    // d3 events are lost. TODO.
-                })
-                .on("mouseout", function(d) {
+                $.when(promise).done(function (reply) {
+                    // The response json array always has length 1
+                    conditionName = reply.response.docs[0].name;
+                    console.log('inside' + conditionName);
                     hoverDiv.transition()
-                        .duration(500)
-                        .style("opacity", 0)
+                        .duration(200)
+                        .style("opacity", .9);
+
+                    hoverDiv.html(conditionName + '<br/>' + d.value)
+                        .style("left", xcoord + "px")
+                        .style("top", ycoord + "px");
                 });
-        } else {
-            infoPanelsvg.selectAll("dot")
-                .data(data)
-            .enter().append("circle")
-                .attr("r", 1.5)
-                .attr("cx", function(d) { return x(d.evoRate); })
-                .attr("cy", function(d) { return y(d.speciesRatio); });
+                console.log('outside' + conditionName);
+
+                // This should be inside the promise callback but then the
+                // d3 events are lost. TODO.
+            })
+            .on("mouseout", function(d) {
+                hoverDiv.transition()
+                    .duration(500)
+                    .style("opacity", 0)
+            });
+        
+        // Add the X Axis
+        infoPanelsvg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+        // Add the Y Axis
+        infoPanelsvg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
+    }
+    
+    // Display information about the cluster that you are hovering over.
+    function showInfoPanelOrtho(buckets) {
+        // TODO Test if we are in the enlarged display
+        var minSpeciesRatio = 10000,
+            ogClusterStats = [];
+        
+        for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
+            ogClusterStats.push({
+                'evoRate': buckets[i].evo_rate_f,
+                'speciesRatio': buckets[i].frac_species_f,
+                'ogid': buckets[i].id
+            });
+
+            if ( buckets[i].frac_species_f < minSpeciesRatio ) {
+                minSpeciesRatio = buckets[i].frac_species_f;
+            }
         }
+
+        /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
+        
+        // Set the dimensions of the canvas / graph
+        var margin = {top: 30, right: 20, bottom: 30, left: 50},
+            // The line plot indide info panel gets its dimensions from graphContainer
+            // maybe TODO ?
+            width = $graphContainer.width() - margin.left - margin.right,
+            height = $graphContainer.height() - margin.top - margin.bottom;
+
+        // Set the ranges
+        var x = d3.scale.linear().range([0, width]);
+        var y = d3.scale.linear().range([height, 0]);
+
+        // Define the axes
+        var xAxis = d3.svg.axis().scale(x)
+            .orient("bottom").ticks(5);
+
+        var yAxis = d3.svg.axis().scale(y)
+            .orient("left").ticks(5);
+
+        // Add the div for the hoverbox.
+        var hoverDiv = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        // Adds the svg canvas
+        var infoPanelsvg = d3.select($infoContainer[0])
+            .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+                .attr("transform", 
+                      "translate(" + margin.left + "," + margin.top + ")");
+
+        // Get the data
+        var data = ogClusterStats;
+        
+        // Scale the range of the data
+        x.domain(d3.extent(data, function(d) { return d.evoRate; }));
+        y.domain([minSpeciesRatio, d3.max(data, function(d) { return d.speciesRatio; })]);
+
+        // Add the dots 
+        infoPanelsvg.selectAll("dot")
+            .data(data)
+            .enter().append("circle")
+            .attr("r", 1.5)
+            .attr("cx", function(d) { return x(d.evoRate); })
+            .attr("cy", function(d) { return y(d.speciesRatio); });
         
         // Add the X Axis
         infoPanelsvg.append("g")
