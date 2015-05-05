@@ -163,7 +163,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 		// Don't run if another diagram is already maximised
 		if ( !bigDiagramExists ) {
-			$( '.diagrams-container' ).append( $diagramContainerBig );
+			$( '.diagrams-container' ).append( $popupContainer );
 			$diagramContainerBig.append( $( this ).parent() );
 
 			bigDiagramExists = true;
@@ -178,7 +178,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	var minimise = function() {
 
-		$diagramContainerBig.detach();
+		$popupContainer.detach();
 		$diagramContainer.append( $( this ).parent() );
 
 		bigDiagramExists = false;
@@ -190,12 +190,16 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	};
 
-	var $diagramContainerContainer = $( '<div>' ).addClass( 'diagram-container-container' ),
+	var $popupContainer = $( '<div>' ).addClass( 'popup-container' ),
+	    $graphContainer = $( '<div>' ).addClass( 'graph-container' ),
+	    $infoContainer = $( '<div>' ).addClass( 'info-container' ),
+        $diagramContainerContainer = $( '<div>' ).addClass( 'diagram-container-container' ),
 		$diagramContainer = $( '<div>' ).addClass( 'diagram-container' ),
 		$diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' ),
 		$svgContainer = $( '<div>' ).addClass( 'svg-container' ),
 		$svgInnerContainer = $( '<div>' ).addClass( 'svg-inner-container' ),
 		$title = $( '<p>' ).addClass( 'diagram-title' ).text( this.species ),
+		$infoTitle = $( '<p>' ).addClass( 'info-title' ).text( "hover over a cluster for information" ),
 
 		$closeButton = $( '<div>' )
 			.addClass( 'button small-button close-button' )
@@ -219,6 +223,9 @@ Practice.Matrix.prototype.drawCircos = function() {
 	$svgContainer.append( $title, $minimiseButton, $expandButton, $closeButton, $svgInnerContainer );
 	$diagramContainer.append( $svgContainer );
 	$diagramContainerContainer.append( $diagramContainer );
+    $graphContainer.append( $diagramContainerBig );
+    $infoContainer.append( $infoTitle );
+    $popupContainer.append( $graphContainer, $infoContainer );
 	$( '.diagrams-container' ).append( $diagramContainerContainer );
 
 	// For accessing this in the findColor function
@@ -275,7 +282,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .style("stroke", function(d) { return findColor(d.index); })
 	    .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
 	    .on("mouseover", fade(0))
-	    .on("mouseout", fade(1));
+	    .on("mouseout", fade(1))
+        .on("mousedown", function(a) { getFacets(a) });
 
 	svg.append("g")
 	    .attr("class", "chord")
@@ -296,8 +304,299 @@ Practice.Matrix.prototype.drawCircos = function() {
 	        .style("opacity", opacity);
 	  };
 	}
+    
+    function getFacets (a) {
+        var orthoLen = that.numorthologyClusters,
+            exprLen = that.numexpressionClusters,
+            clusterIndex = a.index,
+            species = that.species,
+            ids;
+        
+        if ( species === 'Anopheles') {
+            species = 'Anopheles gambiae';
+        } else {
+            species = 'Plasmodium falciparum';
+        }
 
+        console.log(clusterIndex + species);
+        if ( clusterIndex + 1 <= orthoLen ) {
+            console.log("we are in ortho");
+            ids = that.orthologyClusters[clusterIndex].member_ids;
+        } else {
+            console.log("we are in expr");
+            ids = that.expressionClusters[clusterIndex - orthoLen].member_ids;
+        }
+            
+        var idsString = '(' + ids[0];
+        for ( var i = 1, ilen = ids.length; i < ilen; i++ ) {
+            idsString += ' OR ' + ids[i];
+        }
+        idsString += ')';
+
+        var promise;
+        if ( clusterIndex + 1 <= orthoLen ) {
+            promise = getFacetData( '',
+                                    '',
+                                    species,
+                                    idsString );
+        } else {
+            // Construct the request
+            promise = getFacetData( 'id',
+                                    'condition_id',
+                                    'type:condition AND species_s:"' + species + '"',
+                                    idsString );
+        }
+
+        $.when( promise ).done( function( v1i ) {
+            if ( clusterIndex + 1 <= orthoLen ) {
+                var buckets = v1i.response.docs;
+                showInfoPanel(buckets, 'ortho');
+            } else {
+                var buckets = v1i.facets.conditions.buckets;
+                showInfoPanel(buckets, 'expr');
+            }
+        });
+    }
+    
+    function getFacetData(from, to, initialParameter, filter) {
+        var data;
+        if ( from ) {
+            var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter;
+            data = {
+                'q'		: query,
+                'fq'    : 'gene_id:' + filter,
+                'wt'	: 'json',
+                'indent': 'true',
+                'rows' 	: '0',
+                'json.facet'    : "{" +
+                    "conditions    : {" +
+                        "terms : {" +
+                            "field : 'condition_id'," +
+                            "numBuckets    : true," +
+                            "limit : 0," +
+                            "sort  : { index: 'asc' }," +
+                            "facet : {" +
+                                "sum   : 'sum(expression_value_d)'," +
+                                "sumsq : 'sumsq(expression_value_d)'," +
+                                "avg   : 'avg(expression_value_d)'," +
+                                "max   : 'max(expression_value_d)'," +
+                                "min   : 'min(expression_value_d)'," +
+                                "percentiles    : 'percentile(expression_value_d, 25, 50, 75, 99, 99.9)'" +
+                            "}" +
+                        "}" +
+                    "}" +
+                "}"
+            };
+        } else {
+            var speciesFilter;
+            if ( initialParameter.indexOf('gambiae') > -1 ) {
+                speciesFilter = 'id:MZ*';
+            } else {
+                speciesFilter = 'id:PZ*';
+            }
+            
+            data = {
+                'q'     : 'type:og AND ' + speciesFilter,
+                'fq'    : 'id:' + filter,
+                'wt'    : 'json',
+                'indent': 'true',
+                'rows'  : '10000'
+            }
+        }
+
+        return $.ajax({
+            url: 'http://localhost:8983/solr/circos/query',
+            method: "POST",
+            dataType: 'jsonp',
+            jsonp: 'json.wrf',
+            data: data
+        } );
+    }
+
+    // Display information about the cluster that you are hovering over.
+    function showInfoPanel(buckets, dataset) {
+        // TODO Test if we are in the enlarged display
+        var conditionsExpressionValues = [],
+            expressionValues = [],
+            minExpressionValue = 10000,
+            minSpeciesRatio = 10000,
+//            evoRates = [],
+//            speciesRatios = [],
+            ogClusterStats = [];
+        
+        if ( dataset === 'expr' ) {
+            for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
+                conditionsExpressionValues.push({
+                    'condition': i + 1,
+                    'value': buckets[i].avg,
+                    'conditionId': buckets[i].val
+                });
+                
+                if ( buckets[i].avg < minExpressionValue ) {
+                    minExpressionValue = buckets[i].avg;
+                }
+            }
+        } else {
+            for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
+                ogClusterStats.push({
+                    'evoRate': buckets[i].evo_rate_f,
+                    'speciesRatio': buckets[i].frac_species_f,
+                    'ogid': buckets[i].id
+                });
+                
+                if ( buckets[i].frac_species_f < minSpeciesRatio ) {
+                    minSpeciesRatio = buckets[i].frac_species_f;
+                }
+            }
+        }
+        console.log(ogClusterStats);
+
+        /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
+        
+        // Set the dimensions of the canvas / graph
+        var margin = {top: 30, right: 20, bottom: 30, left: 50},
+            // The line plot indide info panel gets its dimensions from graphContainer
+            // maybe TODO ?
+            width = $graphContainer.width() - margin.left - margin.right,
+            height = $graphContainer.height() - margin.top - margin.bottom;
+
+        // Set the ranges
+        var x = d3.scale.linear().range([0, width]);
+        var y = d3.scale.linear().range([height, 0]);
+
+        // Define the axes
+        var xAxis = d3.svg.axis().scale(x)
+            .orient("bottom").ticks(5);
+
+        var yAxis = d3.svg.axis().scale(y)
+            .orient("left").ticks(5);
+
+        // Define the line
+        var valueline;
+        if ( dataset === 'expr' ) {
+            valueline = d3.svg.line()
+                .x(function(d) { return x(d.condition); })
+                .y(function(d) { return y(d.value); });
+        }
+//        else {
+//            valueline = d3.svg.line()
+//                .x(function(d) { return x(d.evoRate); })
+//                .y(function(d) { return y(d.speciesRatio); });
+//        }
+
+        // Add the div for the hoverbox.
+        var hoverDiv = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        // Adds the svg canvas
+        var infoPanelsvg = d3.select($infoContainer[0])
+            .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+                .attr("transform", 
+                      "translate(" + margin.left + "," + margin.top + ")");
+
+        // Get the data
+        var data;
+        if ( dataset === 'expr' ) {
+            data = conditionsExpressionValues;
+        } else {
+            data = ogClusterStats;
+        }
+        
+        // Scale the range of the data
+        if ( dataset === 'expr' ) {
+            x.domain(d3.extent(data, function(d) { return d.condition; }));
+            y.domain([minExpressionValue, d3.max(data, function(d) { return d.value; })]);
+        } else {
+            x.domain(d3.extent(data, function(d) { return d.evoRate; }));
+            y.domain([minSpeciesRatio, d3.max(data, function(d) { return d.speciesRatio; })]);
+        }
+
+        // Add the valueline path.
+        if ( dataset === 'expr' ) {
+            infoPanelsvg.append("path")
+                .attr("class", "line")
+                .attr("d", valueline(data));
+        }
+
+        // Add the dots 
+        if ( dataset === 'expr' ) {
+            infoPanelsvg.selectAll("dot")
+                .data(data)
+            .enter().append("circle")
+                .attr("r", 2.5)
+                .attr("cx", function(d) { return x(d.condition); })
+                .attr("cy", function(d) { return y(d.value); })
+                .on("mouseover", function(d) {
+                    var conditionId = d.conditionId,
+                        promise = getConditionInfo(conditionId),
+//                        promise = PostToSolr(conditionId, [], 1, false),
+                        conditionName,
+                        xcoord = d3.event.pageX,
+                        ycoord = d3.event.pageY;
+
+                    $.when(promise).done(function (reply) {
+                        // The response json array always has length 1
+                        conditionName = reply.response.docs[0].name;
+                        console.log('inside' + conditionName);
+                        hoverDiv.transition()
+                            .duration(200)
+                            .style("opacity", .9);
+
+                        hoverDiv.html(conditionName + '<br/>' + d.value)
+                            .style("left", xcoord + "px")
+                            .style("top", ycoord + "px");
+                    });
+                    console.log('outside' + conditionName);
+
+                    // This should be inside the promise callback but then the
+                    // d3 events are lost. TODO.
+                })
+                .on("mouseout", function(d) {
+                    hoverDiv.transition()
+                        .duration(500)
+                        .style("opacity", 0)
+                });
+        } else {
+            infoPanelsvg.selectAll("dot")
+                .data(data)
+            .enter().append("circle")
+                .attr("r", 1.5)
+                .attr("cx", function(d) { return x(d.evoRate); })
+                .attr("cy", function(d) { return y(d.speciesRatio); });
+        }
+        
+        // Add the X Axis
+        infoPanelsvg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+        // Add the Y Axis
+        infoPanelsvg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
+    }
+    
+    function getConditionInfo(conditionId) {
+        var data = {
+            'q'     : 'id:' + conditionId,
+            'wt'    : 'json',
+            'indent': 'true'
+        }
+        
+        return $.ajax({
+            url: 'http://localhost:8983/solr/circos/query',
+            method: "POST",
+            dataType: 'jsonp',
+            jsonp: 'json.wrf',
+            data: data
+        } );
+    }
+    
 	// Give diagramsContainer a minimum height
 	$diagramContainer.css( 'min-height', $diagramContainerContainer.height() );
-
 };

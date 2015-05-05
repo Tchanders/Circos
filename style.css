@@ -5,6 +5,7 @@
 }
 
 .svg-container {
+    position: relative;
 	width: 100%;
 }
 
@@ -28,22 +29,59 @@
 }
 
 .diagram-container-big {
+/*
 	position: absolute;
 	top: 50px;
 	left: 50px;
-	width: 50%;
+*/
+	width: 100%;
 	background-color: #FFFFFF;
+/*
 	border-style: solid;
 	border-width: 1px;
+*/
+}
+
+.popup-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 100%;
+	border-width: 1px solid black;
+    padding: 0px 15px 0px 15px;
 	z-index: 2;
+    background-color: white;
+/*    max-height: 345px;*/
+}
+
+.graph-container {
+    position: relative;
+    float: left;
+    width: 50%;
+/*	border: 1px solid blue;*/
+}
+
+.info-container {
+    position: relative;
+    float: right;
+    width: 50%;
+    overflow-y: auto;
+    height: 360x;
+/*	border: 1px solid green;*/
 }
 
 .diagram-title {
 	position: absolute;
-	top: 0px;
 	width: 100%;
 	font-size: 18px;
 	text-align: center;
+}
+
+.info-title {
+	position: absolute;
+	width: 100%;
+	text-align: center;
+	font-size: 24px;
 }
 
 .diagram-container-big > .svg-container > .diagram-title {
@@ -98,4 +136,38 @@
   fill-opacity: .67;
   stroke: #000;
   stroke-width: .5px;
+}
+
+/*From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5*/
+body {
+    font: 12px Arial;
+}
+
+path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+/* From the d3.js cookbook */
+div.tooltip {
+    position: absolute;
+    text-align: center;
+/*
+    width: 60px;
+    height: 28px;
+*/
+    padding: 2px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
 }
