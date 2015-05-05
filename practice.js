@@ -13,10 +13,11 @@ var selectedSpecies = 'anoph',
 		}
 	};
 
-function getData( field, value ) {
+function getData( field, value, filter ) {
 
 	var data = {
 		'q'		: field + ':' + value,
+		'fl'	: filter,
 		'wt'	: 'json',
 		'indent': 'true',
 		'rows' 	: '20000'
@@ -33,13 +34,13 @@ function getData( field, value ) {
 
 function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 
-	var promise1 = getData( 'clustering_id', chosenExpressionOption );
-	var promise2 = getData( 'clustering_id', chosenOrthoOption );
+	var promise1 = getData( 'clustering_id', chosenExpressionOption, 'clustering_id,member_ids' );
+	var promise2 = getData( 'clustering_id', chosenOrthoOption, 'clustering_id,member_ids' );
 
-	$.when( promise1, promise2 ).done( function( v1i, v2i ) {
+	$.when( promise1, promise2 ).done( function( v1, v2 ) {
 
-		var	expr = v1i[0].response.docs,
-			ortho = v2i[0].response.docs,
+		var	expr = v1[0].response.docs,
+			ortho = v2[0].response.docs,
 			m = new Practice.Matrix( expr, ortho, dict, colorExpressionClusters );
 		m.drawCircos();
 
@@ -78,7 +79,7 @@ function showOptions( species ) {
 
 }
 
-var optionsPromise1 = getData( 'type', 'clustering' );
+var optionsPromise1 = getData( 'type', 'clustering', 'id' );
 
 $.when( optionsPromise1 ).done( function( v1 ) {
 

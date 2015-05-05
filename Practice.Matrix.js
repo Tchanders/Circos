@@ -12,7 +12,7 @@ Practice.Matrix = function( expressionClusters, orthologyClusters, elementDict )
 	// A "clustering" is the particular set of clusters into which the elements are split
 	this.expressionClusters = expressionClusters;
 	this.orthologyClusters = orthologyClusters;
-	this.type1ElementToType2Element = elementDict;
+	this.geneToOG = elementDict;
 	this.allElements = [];
 
 	// Size of matrices is determined by size of clusters
@@ -52,6 +52,8 @@ Practice.Matrix = function( expressionClusters, orthologyClusters, elementDict )
  */
 Practice.Matrix.prototype.makeElements = function() {
 
+	// TODO Make use of the id field to get coordinates
+
 	var i, j, clusterMembers, type1Name, type2Name, type1Coo, type2Coo, anElement,
 		// Reverse dictionary of type 2 clusters and elements
 		type2ElementToType2Cluster = {};
@@ -73,7 +75,7 @@ Practice.Matrix.prototype.makeElements = function() {
 			// Set up variables for making new elements
 			type1Name = clusterMembers[j];
 			type1Coo = i;
-			type2Name = this.type1ElementToType2Element[type1Name]; // TODO sort this out!
+			type2Name = this.geneToOG[type1Name]; // TODO sort this out!
 			type2Coo = type2ElementToType2Cluster[type2Name];
 
 			// Ignore any type 1 elements that do not map to type 2 elements
@@ -167,6 +169,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 			bigDiagramExists = true;
 			$( '.expand-button' ).css( 'pointer-events', 'none' );
 
+			$minimiseButton.show();
 			$expandButton.hide();
 			$closeButton.hide();
 		}
@@ -181,6 +184,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 		bigDiagramExists = false;
 		$( '.expand-button' ).css( 'pointer-events', '' );
 
+		$minimiseButton.hide();
 		$expandButton.show();
 		$closeButton.show();
 
@@ -209,7 +213,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 		$minimiseButton = $( '<div>' )
 			.addClass( 'button small-button minimise-button' )
 			.text( '−' )
-			.on( 'click', minimise );
+			.on( 'click', minimise )
+			.hide();
 
 	$svgContainer.append( $title, $minimiseButton, $expandButton, $closeButton, $svgInnerContainer );
 	$diagramContainer.append( $svgContainer );
