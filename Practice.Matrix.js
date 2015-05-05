@@ -533,24 +533,27 @@ Practice.Matrix.prototype.drawCircos = function() {
                 .on("mouseover", function(d) {
                     var conditionId = d.conditionId,
                         promise = getConditionInfo(conditionId),
-                        conditionName;
+//                        promise = PostToSolr(conditionId, [], 1, false),
+                        conditionName,
+                        xcoord = d3.event.pageX,
+                        ycoord = d3.event.pageY;
 
                     $.when(promise).done(function (reply) {
                         // The response json array always has length 1
                         conditionName = reply.response.docs[0].name;
                         console.log('inside' + conditionName);
+                        hoverDiv.transition()
+                            .duration(200)
+                            .style("opacity", .9);
+
+                        hoverDiv.html(conditionName + '<br/>' + d.value)
+                            .style("left", xcoord + "px")
+                            .style("top", ycoord + "px");
                     });
                     console.log('outside' + conditionName);
 
                     // This should be inside the promise callback but then the
                     // d3 events are lost. TODO.
-                    hoverDiv.transition()
-                        .duration(200)
-                        .style("opacity", .9);
-
-                    hoverDiv.html(d.condition + '<br/>' + d.value)
-                        .style("left", (d3.event.pageX) + "px")
-                        .style("top", (d3.event.pageY - 28) + "px");
                 })
                 .on("mouseout", function(d) {
                     hoverDiv.transition()
