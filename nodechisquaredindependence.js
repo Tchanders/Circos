@@ -167,4 +167,35 @@ exports.calculate = function( table, dF ) {
 	// Calculate the p-value from the chi-squared statistic and the degrees of freedom
 	var p = 1 - chi.cdf( testStatistic, dF ); // TODO Cater for when p is too small
 	return [testStatistic, p];
+};
+
+// Chord analysis
+
+exports.chordAnalysis = function( table ) {
+
+	var i, j;
+	var smallTable = [[], []];
+	var rowSums = calculateRowSums( table );
+	var colSums = calculateColSums( table );
+	var total = calculateTotal( rowSums );
+	var numRows = rowSums.length;
+	var numCols = colSums.length;
+	var numberOfTests = numRows * numCols;
+
+	for ( i = 0; i < numRows; i++ ) {
+		for ( j = 0; j < numCols; j++ ) {
+
+			smallTable[0][0] = table[i][j];
+			smallTable[0][1] = rowSums[i] - table[i][j];
+			smallTable[1][0] = colSums[j] - table[i][j];
+			smallTable[1][1] = total + table[i][j] - rowSums[i] - colSums[j];
+			results = exports.calculate( smallTable );
+
+			console.log( 'Expression cluster ' + i + ' against orthology cluster ' + j );
+			console.log( 'chi-squared: ' + results[0] );
+			console.log( 'p-value: ' + results[1] );
+
+		}
+	}
+
 }

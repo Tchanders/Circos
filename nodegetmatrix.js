@@ -1,6 +1,7 @@
 var request = require( 'request' );
 var ind = require( './nodechisquaredindependence' );
 var geneToOG = require( './geneToOG.json' );
+
 require( './init' );
 require( './Practice.NodeMatrix' );
 require( './Practice.Element' );
@@ -8,7 +9,7 @@ require( './Practice.Element' );
 var exports = module.exports = {};
 
 // Get data function
-exports.getMatrix = function( field, value, filter ) {
+exports.getMatrix = function( field, value, filter, doChordAnalysis ) {
 
 	var m, matrix;
 
@@ -56,6 +57,10 @@ exports.getMatrix = function( field, value, filter ) {
 			console.log( value );
 			console.log( 'chi-squared: ' + results[0] );
 			console.log( 'p-value: ' + results[1] );
+
+			if ( doChordAnalysis ) {
+				ind.chordAnalysis( matrix );
+			}
 
 		}
 	} );
