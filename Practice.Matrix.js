@@ -232,23 +232,29 @@ Practice.Matrix.prototype.drawCircos = function() {
 	var that = this;
 
 	var colorGroup = function( x ) {
+
 		if ( colorExpressionClusters ) {
+			// Clusters with lower indices are black
 			if ( x < that.numorthologyClusters ) {
 	    		return "#000000";
 	    	} else {
 	    		return fill( x - that.numorthologyClusters );
 	    	}
 		} else {
+			// Clusters with higher indices are black
 			if ( x < that.numorthologyClusters ) {
 	    		return fill( x );
 	    	} else {
 	    		return "#000000";
 	    	}
 		}
+
 	};
 
 	var colorChord = function( d ) {
+
 		var x, significance;
+
 		var checkSignificance = function( d ) {
 			// Do node chord analysis on d.target.index and d.source.index
 			// For now, we are using the following to select chords here and there
@@ -259,15 +265,21 @@ Practice.Matrix.prototype.drawCircos = function() {
 			}
 			return 0;
 		};
+
 		significance = checkSignificance( d );
+
 		if ( significance === 1 ) {
+			// Chords with over-representation
 			return "#FFCC14";
 		} else if ( significance === -1 ) {
+			// Chords with under-representation
 			return "#005D9A";
 		}
 		if ( colorExpressionClusters ) {
+			// Color the chords the same as the expression clusters
 			x = Math.max( d.target.index, d.source.index ) - that.numorthologyClusters;
 		} else {
+			// Color the chords the same as the orthology clusters
 			x = Math.min( d.target.index, d.source.index );
 		}
 		return fill( x );
