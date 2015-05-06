@@ -36,7 +36,7 @@ Practice.Matrix = function( expressionClusters, orthologyClusters, elementDict )
 	// For labels
 	// WARNING!
 	// The following relies on clutering_id being of the form: species_type_cluster_numClusters
-	var idSpecies = this.expressionClusters[0].clustering_id.split( '_' )[0];
+	var idSpecies = this.expressionClusters[0].analysis_id.split( '_' )[0];
 	switch ( idSpecies ) {
 		case 'anoph':
 			this.species = 'Anopheles';

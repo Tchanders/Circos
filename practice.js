@@ -17,6 +17,7 @@ function getData( field, value, filter ) {
 
 	var data = {
 		'q'		: field + ':' + value,
+		'fq'	: '*cluster*',
 		'fl'	: filter,
 		'wt'	: 'json',
 		'indent': 'true',
@@ -34,8 +35,8 @@ function getData( field, value, filter ) {
 
 function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 
-	var promise1 = getData( 'clustering_id', chosenExpressionOption, 'clustering_id,member_ids' );
-	var promise2 = getData( 'clustering_id', chosenOrthoOption, 'clustering_id,member_ids' );
+	var promise1 = getData( 'analysis_id', chosenExpressionOption, 'analysis_id,member_ids' );
+	var promise2 = getData( 'analysis_id', chosenOrthoOption, 'analysis_id,member_ids' );
 
 	$.when( promise1, promise2 ).done( function( v1, v2 ) {
 
@@ -79,7 +80,7 @@ function showOptions( species ) {
 
 }
 
-var optionsPromise1 = getData( 'type', 'clustering', 'id' );
+var optionsPromise1 = getData( 'type', 'analysis', 'id' );
 
 $.when( optionsPromise1 ).done( function( v1 ) {
 
