@@ -17,6 +17,7 @@ function getData( field, value, filter ) {
 
 	var data = {
 		'q'		: field + ':' + value,
+		'fq'	: '*cluster*',
 		'fl'	: filter,
 		'wt'	: 'json',
 		'indent': 'true',
