@@ -228,10 +228,10 @@ Practice.Matrix.prototype.drawCircos = function() {
     $popupContainer.append( $graphContainer, $infoContainer );
 	$( '.diagrams-container' ).append( $diagramContainerContainer );
 
-	// For accessing this in the findColor function
+	// For accessing this in the coloring functions
 	var that = this;
 
-	var findColor = function( x ) {
+	var colorGroup = function( x ) {
 		if ( colorExpressionClusters ) {
 			if ( x < that.numorthologyClusters ) {
 	    		return "#000000";
@@ -240,19 +240,37 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    	}
 		} else {
 			if ( x < that.numorthologyClusters ) {
-	    		return fill( x - that.numorthologyClusters );
+	    		return fill( x );
 	    	} else {
 	    		return "#000000";
 	    	}
 		}
 	};
 
-	var findIndex = function( d ) {
-		if ( colorExpressionClusters ) {
-			return Math.max( d.target.index, d.source.index );
-		} else {
-			return Math.min( d.target.index, d.source.index );
+	var colorChord = function( d ) {
+		var x, significance;
+		var checkSignificance = function( d ) {
+			// Do node chord analysis on d.target.index and d.source.index
+			// For now, we are using the following to select chords here and there
+			if ( d.target.index % 5 === 0 && d.source.index % 3 === 0 ) {
+				return 1;
+			} else if ( d.target.index % 3 === 0 && d.source.index % 4 === 0 ) {
+				return -1;
+			}
+			return 0;
+		};
+		significance = checkSignificance( d );
+		if ( significance === 1 ) {
+			return "#FFCC14";
+		} else if ( significance === -1 ) {
+			return "#005D9A";
 		}
+		if ( colorExpressionClusters ) {
+			x = Math.max( d.target.index, d.source.index ) - that.numorthologyClusters;
+		} else {
+			x = Math.min( d.target.index, d.source.index );
+		}
+		return fill( x );
 	};
 
 	// The following is adapted from http://bl.ocks.org/mbostock/4062006
@@ -268,7 +286,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	var fill = d3.scale.ordinal()
 	    .domain(d3.range(10))
-	    .range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
+	    //.range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
+	    .range(["#D8DFE5"]);
 
 	var svg = d3.select($svgInnerContainer[0]).append("svg")
 	    .attr("viewBox", "0 0 " + width + " " + height)
@@ -278,8 +297,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	svg.append("g").selectAll("path")
 	    .data(chord.groups)
 	  .enter().append("path")
-	    .style("fill", function(d) { return findColor(d.index); })
-	    .style("stroke", function(d) { return findColor(d.index); })
+	    .style("fill", function(d) { return colorGroup(d.index); })
+	    .style("stroke", function(d) { return colorGroup(d.index); })
 	    .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
 	    .on("mouseover", fade(0))
 	    .on("mouseout", fade(1))
@@ -291,8 +310,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .data(chord.chords)
 	  .enter().append("path")
 	    .attr("d", d3.svg.chord().radius(innerRadius))
-	    .style("fill", function(d) { return findColor(findIndex(d)); })
-	    .style("stroke", function(d) { return findColor(findIndex(d)); })
+	    .style("fill", function(d) { return colorChord(d); })
+	    .style("stroke", function(d) { return colorChord(d); })
 	    .style("opacity", 1);
 
 	// Returns an event handler for fading a given chord group.

@@ -4,6 +4,19 @@
 	background-color: #FF0000;
 }
 
+.legend-item {
+	width: 100%;
+	height: 20px;
+}
+
+.legend-item-over {
+	background-color: #FFCC14;
+}
+
+.legend-item-under {
+	background-color: #005D9A;
+}
+
 .svg-container {
     position: relative;
 	width: 100%;
