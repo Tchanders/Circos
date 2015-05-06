@@ -310,6 +310,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             exprLen = that.numexpressionClusters,
             clusterIndex = a.index,
             species = that.species,
+            clusterId,
             ids;
         
         if ( species === 'Anopheles') {
@@ -318,13 +319,18 @@ Practice.Matrix.prototype.drawCircos = function() {
             species = 'Plasmodium falciparum';
         }
 
-        console.log(clusterIndex + species);
+        console.log(clusterIndex + ' ' + species);
         if ( clusterIndex + 1 <= orthoLen ) {
             console.log("we are in ortho");
+            var analysis_id = that.orthologyClusters[clusterIndex].analysis_id
             ids = that.orthologyClusters[clusterIndex].member_ids;
+            clusterId = analysis_id + '_' + ('000'+clusterIndex.toString()).slice(-3);
         } else {
             console.log("we are in expr");
-            ids = that.expressionClusters[clusterIndex - orthoLen].member_ids;
+            var exprIndex = clusterIndex - orthoLen,
+                analysis_id = that.expressionClusters[exprIndex].analysis_id;
+            ids = that.expressionClusters[exprIndex].member_ids;
+            clusterId = analysis_id + '_' + ('000' + exprIndex.toString() ).slice(-3);
         }
             
         var idsString = '(' + ids[0];
@@ -341,30 +347,29 @@ Practice.Matrix.prototype.drawCircos = function() {
                                     idsString );
         } else {
             // Construct the request
-            promise = getFacetData( 'id',
-                                    'condition_id',
-                                    'type:condition AND species_s:"' + species + '"',
-                                    idsString );
+            promise = getFacetData( 'member_ids',
+                                    'gene_id',
+                                    'id:' + clusterId );
         }
 
         $.when( promise ).done( function( v1i ) {
             if ( clusterIndex + 1 <= orthoLen ) {
                 var buckets = v1i.response.docs;
-                showInfoPanelOrtho(buckets, 'ortho');
+                showInfoPanelOrtho(buckets);
             } else {
                 var buckets = v1i.facets.conditions.buckets;
-                showInfoPanelExpr(buckets, 'expr');
+                showInfoPanelExpr(buckets);
             }
         });
     }
     
-    function getFacetData(from, to, initialParameter, filter) {
+    function getFacetData(from, to, initialParameter) {
         var data;
         if ( from ) {
             var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter;
             data = {
                 'q'		: query,
-                'fq'    : 'gene_id:' + filter,
+//                'fq'    : 'gene_id:' + filter,
                 'wt'	: 'json',
                 'indent': 'true',
                 'rows' 	: '0',
@@ -403,6 +408,8 @@ Practice.Matrix.prototype.drawCircos = function() {
                 'rows'  : '10000'
             }
         }
+        
+        console.log(data);
 
         return $.ajax({
             url: 'http://localhost:8983/solr/circos/query',
