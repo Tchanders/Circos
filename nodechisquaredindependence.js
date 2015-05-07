@@ -173,7 +173,7 @@ exports.calculate = function( table, dF ) {
 
 exports.chordAnalysis = function( table ) {
 
-	var i, j;
+	var i, j, e, d;
 	var smallTable = [[], []];
 	var rowSums = calculateRowSums( table );
 	var colSums = calculateColSums( table );
@@ -189,11 +189,25 @@ exports.chordAnalysis = function( table ) {
 			smallTable[0][1] = rowSums[i] - table[i][j];
 			smallTable[1][0] = colSums[j] - table[i][j];
 			smallTable[1][1] = total + table[i][j] - rowSums[i] - colSums[j];
+
 			results = exports.calculate( smallTable );
 
+			console.log( '----------' );
 			console.log( 'Expression cluster ' + i + ' against orthology cluster ' + j );
 			console.log( 'chi-squared: ' + results[0] );
 			console.log( 'p-value: ' + results[1] );
+
+			// If the p value is significant, find out if it is an under- or over-representation
+			if ( results[1] < 0.05 / numberOfTests ) {
+				// Calculate expected value for smallTable[0][0]
+				e = ( rowSums[i] / total ) * ( colSums[j] / total ) * total;
+				// Find out if difference between observed and expected is positive or negative
+				if ( e - table[i][j] > 0 ) {
+					console.log( 'Overrepresentation' );
+				} else if ( e - table[i][j] < 0 ) {
+					console.log( 'Underrepresentation' );
+				}
+			}
 
 		}
 	}

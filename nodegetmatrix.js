@@ -18,7 +18,6 @@ exports.getMatrix = function( field, value, filter, doChordAnalysis ) {
 		'q': field + ':' + value,
 		'fl': filter,
 		'wt': 'json',
-		'indent': 'true',
 		'rows': '20000'
 	};
 
@@ -39,7 +38,7 @@ exports.getMatrix = function( field, value, filter, doChordAnalysis ) {
 				orthologyClusters = [];
 
 			body.response.docs.forEach( function( element ) {
-				clusterType = element.clustering_id.split( '_' )[1];
+				clusterType = element.analysis_id.split( '_' )[1];
 				if ( clusterType === 'expr' ) {
 					expressionClusters.push( element );
 				} else if ( clusterType === 'ortho' ) {

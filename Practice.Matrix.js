@@ -299,7 +299,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	var fill = d3.scale.ordinal()
 	    .domain(d3.range(10))
 	    //.range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
-	    .range(["#D8DFE5"]);
+	    //.range(["#D8DFE5"]);
+	    .range(["#B2FFB2", "#E5FFE5"]);
 
 	var svg = d3.select($svgInnerContainer[0]).append("svg")
 	    .attr("viewBox", "0 0 " + width + " " + height)
