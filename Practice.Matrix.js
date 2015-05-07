@@ -341,10 +341,9 @@ Practice.Matrix.prototype.drawCircos = function() {
 
         var promise;
         if ( clusterIndex + 1 <= orthoLen ) {
-            promise = getFacetData( '',
-                                    '',
-                                    species,
-                                    idsString );
+            promise = getFacetData( 'member_ids',
+                                    'id',
+                                    'id:' + clusterId);
         } else {
             // Construct the request
             promise = getFacetData( 'member_ids',
@@ -363,56 +362,39 @@ Practice.Matrix.prototype.drawCircos = function() {
         });
     }
     
-    function getFacetData(from, to, initialParameter) {
-        var data;
-        if ( from ) {
-            var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter;
+    function getFacetData(from, to, initialParameter, filter) {
+        var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter,
             data = {
                 'q'		: query,
-//                'fq'    : 'gene_id:' + filter,
                 'wt'	: 'json',
                 'indent': 'true',
-                'rows' 	: '0',
-                'json.facet'    : "{" +
-                    "conditions    : {" +
-                        "terms : {" +
-                            "field : 'condition_id'," +
-                            "numBuckets    : true," +
-                            "limit : 0," +
-                            "sort  : { index: 'asc' }," +
-                            "facet : {" +
-                                "sum   : 'sum(expression_value_d)'," +
-                                "sumsq : 'sumsq(expression_value_d)'," +
-                                "avg   : 'avg(expression_value_d)'," +
-                                "max   : 'max(expression_value_d)'," +
-                                "min   : 'min(expression_value_d)'," +
-                                "percentiles    : 'percentile(expression_value_d, 25, 50, 75, 99, 99.9)'" +
-                            "}" +
+                'rows' 	: '20000'};
+        
+        if ( initialParameter.indexOf('expr') > -1 ) {
+            data['rows'] = 1;
+            data['json.facet'] =  "{" +
+                "conditions    : {" +
+                    "terms : {" +
+                        "field : 'condition_id'," +
+                        "numBuckets    : true," +
+                        "limit : 0," +
+                        "sort  : { index: 'asc' }," +
+                        "facet : {" +
+                            "sum   : 'sum(expression_value_d)'," +
+                            "sumsq : 'sumsq(expression_value_d)'," +
+                            "avg   : 'avg(expression_value_d)'" +
+//                            "max   : 'max(expression_value_d)'," +
+//                            "min   : 'min(expression_value_d)'," +
+//                            "percentiles    : 'percentile(expression_value_d, 25, 50, 75, 99, 99.9)'" +
                         "}" +
                     "}" +
-                "}"
-            };
-        } else {
-            var speciesFilter;
-            if ( initialParameter.indexOf('gambiae') > -1 ) {
-                speciesFilter = 'id:MZ*';
-            } else {
-                speciesFilter = 'id:PZ*';
-            }
-            
-            data = {
-                'q'     : 'type:og AND ' + speciesFilter,
-                'fq'    : 'id:' + filter,
-                'wt'    : 'json',
-                'indent': 'true',
-                'rows'  : '10000'
-            }
-        }
+                "}" +
+            "}";
+        };
         
-        console.log(data);
-
         return $.ajax({
             url: 'http://localhost:8983/solr/circos/query',
+            // jsopn is not compatible with POST
             method: "POST",
             dataType: 'jsonp',
             jsonp: 'json.wrf',
