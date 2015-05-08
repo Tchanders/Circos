@@ -231,28 +231,62 @@ Practice.Matrix.prototype.drawCircos = function() {
 	// For accessing this in the findColor function
 	var that = this;
 
-	var findColor = function( x ) {
+	var colorGroup = function( x ) {
+
 		if ( colorExpressionClusters ) {
+			// Clusters with lower indices are black
 			if ( x < that.numorthologyClusters ) {
 	    		return "#000000";
 	    	} else {
 	    		return fill( x - that.numorthologyClusters );
 	    	}
 		} else {
+			// Clusters with higher indices are black
 			if ( x < that.numorthologyClusters ) {
-	    		return fill( x - that.numorthologyClusters );
+	    		return fill( x );
 	    	} else {
 	    		return "#000000";
 	    	}
 		}
+
 	};
 
-	var findIndex = function( d ) {
-		if ( colorExpressionClusters ) {
-			return Math.max( d.target.index, d.source.index );
-		} else {
-			return Math.min( d.target.index, d.source.index );
+	var colorChord = function( d ) {
+
+		var x, significance;
+
+		var checkSignificance = function( d ) {
+			// Do node chord analysis on d.target.index and d.source.index
+			var o = Math.min( d.target.index, d.source.index );
+			var e = Math.max( d.target.index, d.source.index ) - that.numorthologyClusters;
+
+			// Look up significance of this chord in this clustering in the dictionary
+
+			// if ( that.circosSignificanceMatrix[e][o]['direction'] === 'Over' ) {
+			// 	return 1;
+			// } else if ( that.circosSignificanceMatrix[e][o]['direction'] === 'Under' ) {
+			// 	return -1;
+			// }
+			return 0;
+		};
+
+		significance = checkSignificance( d );
+
+		if ( significance === 1 ) {
+			// Chords with over-representation
+			return "#FFCC14";
+		} else if ( significance === -1 ) {
+			// Chords with under-representation
+			return "#005D9A";
 		}
+		if ( colorExpressionClusters ) {
+			// Color the chords the same as the expression clusters
+			x = Math.max( d.target.index, d.source.index ) - that.numorthologyClusters;
+		} else {
+			// Color the chords the same as the orthology clusters
+			x = Math.min( d.target.index, d.source.index );
+		}
+		return fill( x );
 	};
 
 	// The following is adapted from http://bl.ocks.org/mbostock/4062006
@@ -268,7 +302,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	var fill = d3.scale.ordinal()
 	    .domain(d3.range(10))
-	    .range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
+	    .range(["#B2FFB2", "#E5FFE5"]);
 
 	var svg = d3.select($svgInnerContainer[0]).append("svg")
 	    .attr("viewBox", "0 0 " + width + " " + height)
@@ -278,8 +312,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	svg.append("g").selectAll("path")
 	    .data(chord.groups)
 	  .enter().append("path")
-	    .style("fill", function(d) { return findColor(d.index); })
-	    .style("stroke", function(d) { return findColor(d.index); })
+	    .style("fill", function(d) { return colorGroup(d.index); })
+	    .style("stroke", function(d) { return colorGroup(d.index); })
 	    .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
 	    .on("mouseover", fade(0))
 	    .on("mouseout", fade(1))
@@ -291,8 +325,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .data(chord.chords)
 	  .enter().append("path")
 	    .attr("d", d3.svg.chord().radius(innerRadius))
-	    .style("fill", function(d) { return findColor(findIndex(d)); })
-	    .style("stroke", function(d) { return findColor(findIndex(d)); })
+	    .style("fill", function(d) { return colorChord(d); })
+	    .style("stroke", function(d) { return colorChord(d); })
 	    .style("opacity", 1);
 
 	// Returns an event handler for fading a given chord group.
