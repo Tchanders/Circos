@@ -215,8 +215,6 @@ exports.chordAnalysis = function( table ) {
 				'direction': direction
 			};
 
-			console.log( thisResult );
-
 			allResults[i][j] = thisResult;
 
 		}

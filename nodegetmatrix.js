@@ -54,16 +54,22 @@ exports.getMatrix = function( field, value, filter, doChordAnalysis ) {
 			matrix = m.numMatrix;
 			p = ind.calculate( matrix );
 
-			allResults = {
-				'p-value': p,
-				'chords': null
-			}
+			// Parse value
+			var parsedValue = value.split( ' OR ' );
+			var numbersString = parsedValue[0].split('_')[3].replace('(', '').replace(')', '');
+			numbersString += '_';
+			numbersString += parsedValue[1].split('_')[3].replace('(', '').replace(')', '');
 
-			console.log( allResults );
+			allResults = {
+				'graph_id': numbersString,
+				'graph_pvalue': p
+			}
 
 			if ( doChordAnalysis ) {
-				allResults.chords = ind.chordAnalysis( matrix );
+				allResults.chord_pvalues = ind.chordAnalysis( matrix );
 			}
+
+			console.log( JSON.stringify( allResults ) );
 
 		}
 	} );
