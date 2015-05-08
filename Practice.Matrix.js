@@ -256,11 +256,14 @@ Practice.Matrix.prototype.drawCircos = function() {
 		var x, significance;
 
 		var checkSignificance = function( d ) {
-			// Do node chord analysis on d.target.index and d.source.index THIS HAS ALL CHANGED
+			// Do node chord analysis on d.target.index and d.source.index
+			var o = Math.min( d.target.index, d.source.index );
+			var e = Math.max( d.target.index, d.source.index ) - that.numorthologyClusters;
 			// For now, we are using the following to select chords here and there
-			if ( d.target.index % 5 === 0 && d.source.index % 3 === 0 ) {
+			console.log( that.circosSignificanceMatrix[e][o]['direction'] );
+			if ( that.circosSignificanceMatrix[e][o]['direction'] === 'Over' ) {
 				return 1;
-			} else if ( d.target.index % 3 === 0 && d.source.index % 4 === 0 ) {
+			} else if ( that.circosSignificanceMatrix[e][o]['direction'] === 'Under' ) {
 				return -1;
 			}
 			return 0;

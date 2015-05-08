@@ -62,6 +62,10 @@ function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 	$.when( promise ).done( function( v ) {
 		m = new Practice.Matrix({},{},{});
 		m.numMatrix = v.matrix;
+		m.numorthologyClusters = v.numOrth,
+		m.numexpressionClusters = v.numExpr,
+		m.circosSignificanceMatrix = v.chords;
+		console.log( m.circosSignificanceMatrix );
 		m.drawCircos();
 	} );
 
