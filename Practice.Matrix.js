@@ -260,13 +260,14 @@ Practice.Matrix.prototype.drawCircos = function() {
 			var o = Math.min( d.target.index, d.source.index );
 			var e = Math.max( d.target.index, d.source.index ) - that.numorthologyClusters;
 
-			// Look up significance of this chord in this clustering in the dictionary
+			currentGraphId = 'graph_id_' + that.numexpressionClusters + '_' + that.numorthologyClusters;
+			console.log( allPValues[currentGraphId].chord_pvalues[o][e].direction );
 
-			// if ( that.circosSignificanceMatrix[e][o]['direction'] === 'Over' ) {
-			// 	return 1;
-			// } else if ( that.circosSignificanceMatrix[e][o]['direction'] === 'Under' ) {
-			// 	return -1;
-			// }
+			if ( allPValues[currentGraphId].chord_pvalues[o][e].direction === 'Over' ) {
+				return 1;
+			} else if ( allPValues[currentGraphId].chord_pvalues[o][e].direction === 'Under' ) {
+				return -1;
+			}
 			return 0;
 		};
 
