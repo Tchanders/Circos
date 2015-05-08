@@ -260,12 +260,18 @@ Practice.Matrix.prototype.drawCircos = function() {
 			var o = Math.min( d.target.index, d.source.index );
 			var e = Math.max( d.target.index, d.source.index ) - that.numorthologyClusters;
 
-			currentGraphId = 'graph_id_' + that.numexpressionClusters + '_' + that.numorthologyClusters;
-			console.log( allPValues[currentGraphId].chord_pvalues[o][e].direction );
+			if ( that.species === 'Anopheles' ) {
+				currentPValues = anophPValues;
+			} else if ( that.species === 'Plasmodium' ) {
+				currentPValues = plasmoPValues;
+			}
 
-			if ( allPValues[currentGraphId].chord_pvalues[o][e].direction === 'Over' ) {
+			var currentGraphId = 'graph_id_' + that.numexpressionClusters + '_' + that.numorthologyClusters;
+			console.log( currentPValues[currentGraphId].chord_pvalues[o][e].direction );
+
+			if ( currentPValues[currentGraphId].chord_pvalues[o][e].direction === 'Over' ) {
 				return 1;
-			} else if ( allPValues[currentGraphId].chord_pvalues[o][e].direction === 'Under' ) {
+			} else if ( currentPValues[currentGraphId].chord_pvalues[o][e].direction === 'Under' ) {
 				return -1;
 			}
 			return 0;
