@@ -260,10 +260,10 @@ Practice.Matrix.prototype.drawCircos = function() {
 			var o = Math.min( d.target.index, d.source.index );
 			var e = Math.max( d.target.index, d.source.index ) - that.numorthologyClusters;
 			// For now, we are using the following to select chords here and there
-			console.log( that.circosSignificanceMatrix[e][o]['direction'] );
-			if ( that.circosSignificanceMatrix[e][o]['direction'] === 'Over' ) {
+			console.log( that.circosSignificanceMatrix[o][e]['direction'] );
+			if ( that.circosSignificanceMatrix[o][e]['direction'] === 'Over' ) {
 				return 1;
-			} else if ( that.circosSignificanceMatrix[e][o]['direction'] === 'Under' ) {
+			} else if ( that.circosSignificanceMatrix[o][e]['direction'] === 'Under' ) {
 				return -1;
 			}
 			return 0;
