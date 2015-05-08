@@ -34,7 +34,8 @@ exports.getMatrix = function( field, value, filter, doChordAnalysis ) {
 			console.log( error );
 		} else {
 
-			var	expressionClusters = [],
+			var	allResults, p,
+				expressionClusters = [],
 				orthologyClusters = [];
 
 			body.response.docs.forEach( function( element ) {
@@ -51,14 +52,17 @@ exports.getMatrix = function( field, value, filter, doChordAnalysis ) {
 			m.makeElementMatrix();
 			m.makenumMatrix();
 			matrix = m.numMatrix;
-			results = ind.calculate( matrix );
+			p = ind.calculate( matrix );
 
-			console.log( value );
-			console.log( 'chi-squared: ' + results[0] );
-			console.log( 'p-value: ' + results[1] );
+			allResults = {
+				'p-value': p,
+				'chords': null
+			}
+
+			console.log( allResults );
 
 			if ( doChordAnalysis ) {
-				ind.chordAnalysis( matrix );
+				allResults.chords = ind.chordAnalysis( matrix );
 			}
 
 		}

@@ -4,7 +4,7 @@
  * @class
  */
 Practice.Matrix = function( expressionClusters, orthologyClusters, elementDict ) {
-
+return;
 	var i, j;
 
 	// An "element" is the basic data unit, e.g. a gene or an orthologous group
@@ -155,9 +155,9 @@ Practice.Matrix.prototype.makenumMatrix = function() {
  */
 Practice.Matrix.prototype.drawCircos = function() {
 
-	this.makeElements();
-	this.makeElementMatrix();
-	this.makenumMatrix();
+	// this.makeElements();
+	// this.makeElementMatrix();
+	// this.makenumMatrix();
 
 	var expand = function() {
 
@@ -256,7 +256,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 		var x, significance;
 
 		var checkSignificance = function( d ) {
-			// Do node chord analysis on d.target.index and d.source.index
+			// Do node chord analysis on d.target.index and d.source.index THIS HAS ALL CHANGED
 			// For now, we are using the following to select chords here and there
 			if ( d.target.index % 5 === 0 && d.source.index % 3 === 0 ) {
 				return 1;

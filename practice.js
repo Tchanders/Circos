@@ -35,17 +35,35 @@ function getData( field, value, filter ) {
 
 function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 
-	var promise1 = getData( 'analysis_id', chosenExpressionOption, 'analysis_id,member_ids' );
-	var promise2 = getData( 'analysis_id', chosenOrthoOption, 'analysis_id,member_ids' );
+	// var promise1 = getData( 'analysis_id', chosenExpressionOption, 'analysis_id,member_ids' );
+	// var promise2 = getData( 'analysis_id', chosenOrthoOption, 'analysis_id,member_ids' );
 
-	$.when( promise1, promise2 ).done( function( v1, v2 ) {
+	// $.when( promise1, promise2 ).done( function( v1, v2 ) {
 
-		var	expr = v1[0].response.docs,
-			ortho = v2[0].response.docs,
-			m = new Practice.Matrix( expr, ortho, dict, colorExpressionClusters );
+	// 	var	expr = v1[0].response.docs,
+	// 		ortho = v2[0].response.docs,
+	// 		m = new Practice.Matrix( expr, ortho, dict, colorExpressionClusters );
+	// 	m.drawCircos();
+
+	// });
+
+	var promise = $.ajax( 'http://localhost:8081',  {
+		dataType: 'jsonp',
+		data: {
+			value: '('
+				+ chosenExpressionOption
+				+ ' OR '
+				+ chosenOrthoOption
+				+ ')',
+			filter: 'analysis_id,member_ids'
+		}
+	} );
+
+	$.when( promise ).done( function( v ) {
+		m = new Practice.Matrix({},{},{});
+		m.numMatrix = v.matrix;
 		m.drawCircos();
-
-	});
+	} );
 
 }
 

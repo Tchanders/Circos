@@ -166,14 +166,15 @@ exports.calculate = function( table, dF ) {
 
 	// Calculate the p-value from the chi-squared statistic and the degrees of freedom
 	var p = 1 - chi.cdf( testStatistic, dF ); // TODO Cater for when p is too small
-	return [testStatistic, p];
+	return p;
 };
 
 // Chord analysis
 
 exports.chordAnalysis = function( table ) {
 
-	var i, j, e, d;
+	var i, j, e, p, direction, thisResult;
+	var allResults = [];
 	var smallTable = [[], []];
 	var rowSums = calculateRowSums( table );
 	var colSums = calculateColSums( table );
@@ -183,6 +184,9 @@ exports.chordAnalysis = function( table ) {
 	var numberOfTests = numRows * numCols;
 
 	for ( i = 0; i < numRows; i++ ) {
+
+		allResults[i] = [];
+
 		for ( j = 0; j < numCols; j++ ) {
 
 			smallTable[0][0] = table[i][j];
@@ -190,26 +194,34 @@ exports.chordAnalysis = function( table ) {
 			smallTable[1][0] = colSums[j] - table[i][j];
 			smallTable[1][1] = total + table[i][j] - rowSums[i] - colSums[j];
 
-			results = exports.calculate( smallTable );
-
-			console.log( '----------' );
-			console.log( 'Expression cluster ' + i + ' against orthology cluster ' + j );
-			console.log( 'chi-squared: ' + results[0] );
-			console.log( 'p-value: ' + results[1] );
+			p = exports.calculate( smallTable );
 
 			// If the p value is significant, find out if it is an under- or over-representation
-			if ( results[1] < 0.05 / numberOfTests ) {
+			if ( p < ( 0.05 / numberOfTests ) ) {
 				// Calculate expected value for smallTable[0][0]
 				e = ( rowSums[i] / total ) * ( colSums[j] / total ) * total;
 				// Find out if difference between observed and expected is positive or negative
 				if ( e - table[i][j] > 0 ) {
-					console.log( 'Overrepresentation' );
+					direction = 'Over';
 				} else if ( e - table[i][j] < 0 ) {
-					console.log( 'Underrepresentation' );
+					direction = 'Under';
 				}
+			} else {
+				direction = null;
 			}
+
+			thisResult = {
+				'p-value': p,
+				'direction': direction
+			};
+
+			console.log( thisResult );
+
+			allResults[i][j] = thisResult;
 
 		}
 	}
+
+	return allResults
 
 }
