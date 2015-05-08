@@ -263,8 +263,6 @@ Practice.Matrix.prototype.drawCircos = function() {
 			console.log( that.circosSignificanceMatrix[o][e]['direction'] );
 			if ( that.circosSignificanceMatrix[o][e]['direction'] === 'Over' ) {
 				return 1;
-			} else if ( that.circosSignificanceMatrix[o][e]['direction'] === 'Under' ) {
-				return -1;
 			}
 			return 0;
 		};
@@ -274,9 +272,6 @@ Practice.Matrix.prototype.drawCircos = function() {
 		if ( significance === 1 ) {
 			// Chords with over-representation
 			return "#FFCC14";
-		} else if ( significance === -1 ) {
-			// Chords with under-representation
-			return "#005D9A";
 		}
 		if ( colorExpressionClusters ) {
 			// Color the chords the same as the expression clusters
@@ -303,7 +298,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .domain(d3.range(10))
 	    //.range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
 	    //.range(["#D8DFE5"]);
-	    .range(["#B2FFB2", "#E5FFE5"]);
+	    .range(["#CBD4DA", "#BBD9EE"]);
 
 	var svg = d3.select($svgInnerContainer[0]).append("svg")
 	    .attr("viewBox", "0 0 " + width + " " + height)
