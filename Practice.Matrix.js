@@ -251,24 +251,22 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	};
 
+	var checkSignificance = function( d ) {
+		// Do node chord analysis on d.target.index and d.source.index
+		var o = Math.min( d.target.index, d.source.index );
+		var e = Math.max( d.target.index, d.source.index ) - that.numorthologyClusters;
+
+		if ( that.circosSignificanceMatrix[o][e]['direction'] === 'Over' ) {
+			return 1;
+		}
+		return 0;
+	};
+
 	var colorChord = function( d ) {
 
 		var x, significance;
 
-		var checkSignificance = function( d ) {
-			// Do node chord analysis on d.target.index and d.source.index
-			var o = Math.min( d.target.index, d.source.index );
-			var e = Math.max( d.target.index, d.source.index ) - that.numorthologyClusters;
-			// For now, we are using the following to select chords here and there
-			console.log( that.circosSignificanceMatrix[o][e]['direction'] );
-			if ( that.circosSignificanceMatrix[o][e]['direction'] === 'Over' ) {
-				return 1;
-			}
-			return 0;
-		};
-
 		significance = checkSignificance( d );
-
 		if ( significance === 1 ) {
 			// Chords with over-representation
 			return "#FFCC14";
@@ -281,6 +279,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 			x = Math.min( d.target.index, d.source.index );
 		}
 		return fill( x );
+
 	};
 
 	// The following is adapted from http://bl.ocks.org/mbostock/4062006
