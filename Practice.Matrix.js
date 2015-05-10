@@ -407,20 +407,44 @@ Practice.Matrix.prototype.drawCircos = function() {
         // TODO Test if we are in the enlarged display
         var conditionsExpressionValues = [],
             expressionValues = [],
-            minExpressionValue = 10000;
+            minExpressionValue = -Infinity,
+            minDeviation = Infinity,
+            maxDeviation = 0;
+        
+        console.log(buckets);
         
         for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
+            var condition = i + 1,
+                conditionId = buckets[i].val,
+                mean = buckets[i].avg,
+                variance = ((buckets[i].sumsq / buckets[i].count) - Math.pow(buckets[i].avg, 2)),
+                minConfidenceInterval = mean - 2 * Math.sqrt(variance),
+                maxConfidenceInterval = mean + 2 * Math.sqrt(variance);
+            
             conditionsExpressionValues.push({
-                'condition': i + 1,
-                'value': buckets[i].avg,
-                'conditionId': buckets[i].val
+                'condition': condition,
+                'mean': mean,
+                'variance': variance,
+                'minConfidenceInterval': minConfidenceInterval,
+                'maxConfidenceInterval': maxConfidenceInterval,
+                'conditionId': conditionId
             });
-
-            if ( buckets[i].avg < minExpressionValue ) {
-                minExpressionValue = buckets[i].avg;
-            }
+            
+            if ( conditionsExpressionValues[i].minConfidenceInterval < minDeviation ) {
+                minDeviation = conditionsExpressionValues[i].minConfidenceInterval
+            };
+            
+            if ( conditionsExpressionValues[i].maxConfidenceInterval > maxDeviation ) {
+                maxDeviation = conditionsExpressionValues[i].maxConfidenceInterval
+            };
+            
+            if ( conditionsExpressionValues[i].mean < minExpressionValue ) {
+                minExpressionValue = conditionsExpressionValues[i].mean;
+            };
         }
 
+        console.log(conditionsExpressionValues);
+        
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
         
         // Set the dimensions of the canvas / graph
@@ -441,11 +465,6 @@ Practice.Matrix.prototype.drawCircos = function() {
         var yAxis = d3.svg.axis().scale(y)
             .orient("left").ticks(5);
 
-        // Define the line
-        var valueline = d3.svg.line()
-            .x(function(d) { return x(d.condition); })
-            .y(function(d) { return y(d.value); });
-
         // Add the div for the hoverbox.
         var hoverDiv = d3.select("body").append("div")
             .attr("class", "tooltip")
@@ -465,20 +484,27 @@ Practice.Matrix.prototype.drawCircos = function() {
         
         // Scale the range of the data
         x.domain(d3.extent(data, function(d) { return d.condition; }));
-        y.domain([minExpressionValue, d3.max(data, function(d) { return d.value; })]);
+        y.domain([d3.min(data, function (d) { return d.minConfidenceInterval; }),
+                  d3.max(data, function (d) { return d.maxConfidenceInterval; })]);
 
-        // Add the valueline path.
-        infoPanelsvg.append("path")
+        infoPanelsvg.selectAll("line")
+            .data(data)
+            .enter().append("svg:line")
             .attr("class", "line")
-            .attr("d", valueline(data));
+            .attr("y1", function (d) { return y(d.maxConfidenceInterval); })
+            .attr("y2", function (d) { return y(d.minConfidenceInterval); })
+            .attr("x1", function (d) { return x(d.condition); })
+            .attr("x2", function (d) { return x(d.condition); })
+            .attr("stroke", "grey");
 
         // Add the dots 
         infoPanelsvg.selectAll("dot")
             .data(data)
-        .enter().append("circle")
-            .attr("r", 2.5)
+            .enter()
+            .append("circle")
+            .attr("r", 2)
             .attr("cx", function(d) { return x(d.condition); })
-            .attr("cy", function(d) { return y(d.value); })
+            .attr("cy", function(d) { return y(d.mean); })
             .on("mouseover", function(d) {
                 var conditionId = d.conditionId,
                     promise = getConditionInfo(conditionId),
