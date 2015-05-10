@@ -352,7 +352,7 @@ Practice.Matrix.prototype.drawCircos = function() {
         
         $.when( promise1, promise2 ).done( function( v1i, v2i ) {
             if ( clusterIndex + 1 <= orthoLen ) {
-                var buckets = v1i.response.docs;
+                var buckets = v1i[0].response.docs;
                 showInfoPanelOrtho(buckets);
             } else {
                 /* The response is an array with three elements:
