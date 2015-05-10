@@ -401,8 +401,6 @@ Practice.Matrix.prototype.drawCircos = function() {
             "}";
         };
         
-        console.log(data);
-        
         return $.ajax({
             url: 'http://localhost:8983/solr/circos/query',
             // jsopn is not compatible with POST
@@ -421,38 +419,50 @@ Practice.Matrix.prototype.drawCircos = function() {
             minYaxisValue = +Infinity,
             maxYaxisValue = -Infinity;
         
-        console.log(clusterBuckets);
-        
         for ( var i = 0, ilen = clusters.length; i < ilen; i++ ) {
             expressionValues.push([]);
+            
+            var conditionIds = [];
+            if ( i === 1 ) {
+                // Construct an array with all the condition ids so that they can
+                // be used to filter the genome ids.
+                for ( var k = 0, klen = expressionValues[0].length; k < klen; k++ ) {
+                    conditionIds.push(expressionValues[0][k].conditionId);
+                }
+            }
+            
+            var nOfSkippedConditions = 0;            
             for ( var j = 0, jlen = clusters[i].length; j < jlen; j++ ) {
-                var condition = j + 1,
+                var condition = j + 1 - nOfSkippedConditions,
                     conditionId = clusters[i][j].val,
                     mean = clusters[i][j].avg,
                     variance = ((clusters[i][j].sumsq / clusters[i][j].count) - Math.pow(clusters[i][j].avg, 2)),
                     minConfidenceInterval = mean - 2 * Math.sqrt(variance),
                     maxConfidenceInterval = mean + 2 * Math.sqrt(variance);
-
-                expressionValues[i].push({
-                    'condition': condition,
-                    'mean': mean,
-                    'variance': variance,
-                    'minConfidenceInterval': minConfidenceInterval,
-                    'maxConfidenceInterval': maxConfidenceInterval,
-                    'conditionId': conditionId
-                });
-
-                if ( minYaxisValue > minConfidenceInterval ) {
-                    minYaxisValue = minConfidenceInterval
-                };
                 
-                if ( maxYaxisValue < maxConfidenceInterval ) {
-                    maxYaxisValue = maxConfidenceInterval
-                };
+                if ( (i === 1 && $.inArray(conditionId, conditionIds) > -1) ||
+                     ( i === 0 ) ) {
+                    expressionValues[i].push({
+                        'condition': condition,
+                        'mean': mean,
+                        'variance': variance,
+                        'minConfidenceInterval': minConfidenceInterval,
+                        'maxConfidenceInterval': maxConfidenceInterval,
+                        'conditionId': conditionId
+                    });
+
+                    if ( minYaxisValue > minConfidenceInterval ) {
+                        minYaxisValue = minConfidenceInterval
+                    };
+
+                    if ( maxYaxisValue < maxConfidenceInterval ) {
+                        maxYaxisValue = maxConfidenceInterval
+                    };
+                } else if ( i === 1 ) {
+                    nOfSkippedConditions++;
+                }
             }
         }
-        
-        console.log('test', expressionValues);
         
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
         
