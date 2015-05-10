@@ -334,12 +334,6 @@ Practice.Matrix.prototype.drawCircos = function() {
             clusterId = analysis_id + '_' + ('000' + exprIndex.toString() ).slice(-3);
         }
             
-//        var idsString = '(' + ids[0];
-//        for ( var i = 1, ilen = ids.length; i < ilen; i++ ) {
-//            idsString += ' OR ' + ids[i];
-//        }
-//        idsString += ')';
-
         // Construct the request
         var promise1,
             promise2 = getFacetData( 'member_ids',
@@ -357,7 +351,6 @@ Practice.Matrix.prototype.drawCircos = function() {
         }
         
         $.when( promise1, promise2 ).done( function( v1i, v2i ) {
-            console.log(v1i, v2i);
             if ( clusterIndex + 1 <= orthoLen ) {
                 var buckets = v1i.response.docs;
                 showInfoPanelOrtho(buckets);
@@ -403,8 +396,6 @@ Practice.Matrix.prototype.drawCircos = function() {
         
         return $.ajax({
             url: 'http://localhost:8983/solr/circos/query',
-            // jsopn is not compatible with POST
-            // method: "POST",
             dataType: 'jsonp',
             jsonp: 'json.wrf',
             data: data
