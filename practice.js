@@ -1,18 +1,3 @@
-var selectedSpecies = 'anoph',
-	colorExpressionClusters = true,
-	bigDiagramExists = false,
-
-	optionsDict = {
-		'anoph': {
-			'expr': {},
-			'ortho': {}
-		},
-		'plasmo': {
-			'expr': {},
-			'ortho': {}
-		}
-	};
-
 function getData( field, value, filter ) {
 
 	var data = {
@@ -28,45 +13,6 @@ function getData( field, value, filter ) {
 		dataType: 'jsonp',
 		jsonp: 'json.wrf',
 		data: data
-	} );
-
-}
-
-
-function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
-
-	// var promise1 = getData( 'analysis_id', chosenExpressionOption, 'analysis_id,member_ids' );
-	// var promise2 = getData( 'analysis_id', chosenOrthoOption, 'analysis_id,member_ids' );
-
-	// $.when( promise1, promise2 ).done( function( v1, v2 ) {
-
-	// 	var	expr = v1[0].response.docs,
-	// 		ortho = v2[0].response.docs,
-	// 		m = new Practice.Matrix( expr, ortho, dict, colorExpressionClusters );
-	// 	m.drawCircos();
-
-	// });
-
-	var promise = $.ajax( 'http://localhost:8081',  {
-		dataType: 'jsonp',
-		data: {
-			value: '('
-				+ chosenExpressionOption
-				+ ' OR '
-				+ chosenOrthoOption
-				+ ')',
-			filter: 'analysis_id,member_ids'
-		}
-	} );
-
-	$.when( promise ).done( function( v ) {
-		m = new Practice.Matrix({},{},{});
-		m.numMatrix = v.circosMatrix;
-		m.numorthologyClusters = v.numOrthologyClusters,
-		m.numexpressionClusters = v.numExpressionClusters,
-		m.circosSignificanceMatrix = v.pValuesOfChords;
-		console.log( m.circosSignificanceMatrix );
-		m.drawCircos();
 	} );
 
 }
@@ -101,6 +47,46 @@ function showOptions( species ) {
 		} );
 
 }
+
+function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
+
+	var promise = $.ajax( 'http://localhost:8081',  {
+		dataType: 'jsonp',
+		data: {
+			value: '('
+				+ chosenExpressionOption
+				+ ' OR '
+				+ chosenOrthoOption
+				+ ')',
+			filter: 'analysis_id,member_ids'
+		}
+	} );
+
+	$.when( promise ).done( function( v ) {
+		m = new Practice.Matrix( selectedSpecies );
+		m.circosMatrix = v.circosMatrix;
+		m.numOrthologyClusters = v.numOrthologyClusters,
+		m.numExpressionClusters = v.numExpressionClusters,
+		m.pValuesOfChords = v.pValuesOfChords;
+		m.drawCircos();
+	} );
+
+}
+
+var selectedSpecies = 'anoph',
+	colorExpressionClusters = true,
+	bigDiagramExists = false;
+
+var optionsDict = {
+		'anoph': {
+			'expr': {},
+			'ortho': {}
+		},
+		'plasmo': {
+			'expr': {},
+			'ortho': {}
+		}
+	};
 
 var optionsPromise1 = getData( 'type', 'analysis', 'id' );
 
