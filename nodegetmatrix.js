@@ -48,9 +48,9 @@ exports.getMatrix = function( field, value, filter, doChordAnalysis ) {
 			} );
 
 			m = new Practice.Matrix( expressionClusters, orthologyClusters, geneToOG );
-			m.makeElements();
-			m.makeElementMatrix();
-			m.makenumMatrix();
+			// m.makeElements();
+			// m.makeElementMatrix();
+			m.makeNumMatrix();
 			matrix = m.numMatrix;
 			p = ind.calculate( matrix );
 

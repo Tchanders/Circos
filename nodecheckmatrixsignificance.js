@@ -1,6 +1,6 @@
 var matr = require( './nodegetmatrix' );
 
-var clusterSizes = [2, 3, 4, 5, 10, 15, 20, 25];
+var clusterSizes = [2, 3];//, 4, 5, 10, 15, 20, 25];
 var i, j, length = clusterSizes.length;
 
 for ( i = 0; i < length; i++ ) {
