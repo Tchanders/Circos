@@ -335,32 +335,37 @@ Practice.Matrix.prototype.drawCircos = function() {
         }
             
         // Construct the request
-        var promise1,
-            promise2 = getFacetData( 'member_ids',
-                                     'gene_id',
-                                     'analysis_id:' + analysis_id);
+        var promise1, promise2;
         
         if ( clusterIndex + 1 <= orthoLen ) {
             promise1 = getFacetData( 'member_ids',
-                                    'id',
-                                    'id:' + clusterId);
+                                     'og_id',
+                                     'id:' + clusterId);
+            promise2 = getFacetData( 'member_ids',
+                                     'og_id',
+                                     'analysis_id:' + analysis_id)
         } else {
             promise1 = getFacetData( 'member_ids',
-                                    'gene_id',
-                                    'id:' + clusterId );
+                                     'gene_id',
+                                     'id:' + clusterId );
+            promise2 = getFacetData( 'member_ids',
+                                     'gene_id',
+                                     'analysis_id:' + analysis_id)
         }
         
         $.when( promise1, promise2 ).done( function( v1i, v2i ) {
+            /* The response is an array with three elements:
+             *   [0]: The actual response from solr.
+             *   [1]: success or failure. Mayne check for this before proceeding?
+             *   [2]: Info from Ajax. Useless.
+             * So we always have to the 0th element of the response.
+             */
+//            console.log(v1i, v2i)
             if ( clusterIndex + 1 <= orthoLen ) {
-                var buckets = v1i[0].response.docs;
-                showInfoPanelOrtho(buckets);
+                var clusterBuckets = v1i[0].facets,
+                    genomeBuckets = v2i[0].facets;
+                showInfoPanelOrtho(clusterBuckets, genomeBuckets);
             } else {
-                /* The response is an array with three elements:
-                 *   [0]: The actual response from solr.
-                 *   [1]: success or failure. Mayne check for this before proceeding?
-                 *   [2]: Info from Ajax. Useless.
-                 * So we always have to the 0th element of the response.
-                 */
                 var clusterBuckets = v1i[0].facets.conditions.buckets,
                     genomeBuckets = v2i[0].facets.conditions.buckets;
                 showInfoPanelExpr(clusterBuckets, genomeBuckets);
@@ -392,7 +397,21 @@ Practice.Matrix.prototype.drawCircos = function() {
                     "}" +
                 "}" +
             "}";
-        };
+        } else if ( initialParameter.indexOf('ortho') > -1 ) {
+            data['rows'] = 1;
+            data['json.nl'] = 'map';
+            data['json.facet'] =  "{" +
+                "evorMean : 'avg(evo_rate_f)'," +
+                'evoPerc:"percentile(evo_rate_f,5,25,50,75,95)",' +
+                'duplMean:"avg(avg_para_count_f)",' +
+                'duplPerc:"percentile(avg_para_count_f,5,25,50,75,95)",' +
+                'univMean:"avg(frac_species_f)",' +
+                'univPerc:"percentile(frac_species_f,5,25,50,75,95)",' +
+                'evor: {range : {field:evo_rate_f, start:0, end:4, gap:0.13}},' +
+                'dupl: {range : {field:avg_para_count_f, start:1, end:31, gap:1.03}},' +
+                'univ: {range : {field:frac_species_f, start:0, end:1, gap:0.033}}' +
+            "}";
+        }
         
         return $.ajax({
             url: 'http://localhost:8983/solr/circos/query',
