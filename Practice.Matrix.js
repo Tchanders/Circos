@@ -199,7 +199,9 @@ Practice.Matrix.prototype.drawCircos = function() {
 		$svgContainer = $( '<div>' ).addClass( 'svg-container' ),
 		$svgInnerContainer = $( '<div>' ).addClass( 'svg-inner-container' ),
 		$title = $( '<p>' ).addClass( 'diagram-title' ).text( this.species ),
-		$infoTitle = $( '<p>' ).addClass( 'info-title' ).text( "hover over a cluster for information" ),
+		$infoTitle = $( '<p>' ).addClass( 'info-title' ).text( "Cluster Information" ),
+        $infoInnerContainer = $( '<div>' ).addClass('info-inner-container').css("width", "100%"),
+        $infoInnerContainerText = $( '<p>' ).text("Click on a cluster to display information about it.").css("text-align", "center").css("width", "100%"),
 
 		$closeButton = $( '<div>' )
 			.addClass( 'button small-button close-button' )
@@ -224,7 +226,9 @@ Practice.Matrix.prototype.drawCircos = function() {
 	$diagramContainer.append( $svgContainer );
 	$diagramContainerContainer.append( $diagramContainer );
     $graphContainer.append( $diagramContainerBig );
-//    $infoContainer.append( $infoTitle );
+    $infoContainer.append( $infoTitle );
+    $infoInnerContainer.append( $infoInnerContainerText);
+    $infoContainer.append( $infoInnerContainer );
     $popupContainer.append( $graphContainer, $infoContainer );
 	$( '.diagrams-container' ).append( $diagramContainerContainer );
 
@@ -429,6 +433,8 @@ Practice.Matrix.prototype.drawCircos = function() {
             minYaxisValue = +Infinity,
             maxYaxisValue = -Infinity;
         
+        $infoInnerContainer.empty()
+        
         for ( var i = 0, ilen = clusters.length; i < ilen; i++ ) {
             expressionValues.push([]);
             
@@ -500,7 +506,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             .style("opacity", 0);
 
         // Adds the svg canvas
-        var infoPanelsvg = d3.select($infoContainer[0])
+        var infoPanelsvg = d3.select($infoInnerContainer[0])
             .append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
@@ -616,6 +622,8 @@ Practice.Matrix.prototype.drawCircos = function() {
         };
         
         console.log(orthologyValues)
+        
+        $infoInnerContainer.empty()
 
         /* From vector-violin.js@ninjaviewer (mostly) */
         
@@ -634,7 +642,7 @@ Practice.Matrix.prototype.drawCircos = function() {
         var d3ObjId = "violin";
         var interpolation = 'basis';
         
-        var evoRateDiv = d3.select($infoContainer[0])
+        var evoRateDiv = d3.select($infoInnerContainer[0])
             .append("div")
 //                .attr("class", "evo-rate-div")
                 .style("width", "33.3%")
@@ -654,19 +662,19 @@ Practice.Matrix.prototype.drawCircos = function() {
 
         svg.append("text")
             .attr("x", margin.left + boxWidth)
-            .attr("y", 25)
+            .attr("y", margin.top/2)
             .style("text-anchor", "middle")
             .text("Evolutionary Rate");
 
         svg.append("text")
             .attr("x", margin.left + boxWidth/2)
-            .attr("y", 335)
+            .attr("y", height - margin.bottom/2)
             .style("text-anchor", "middle")
             .text("All");
 
         svg.append("text")
             .attr("x", margin.left + boxWidth + boxWidth/2)
-            .attr("y", 335)
+            .attr("y", height - margin.bottom/2)
             .style("text-anchor", "middle")
             .text("Cluster");
         
@@ -688,7 +696,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             .call(yAxisEvor);
             
         // Duplicability
-        var duplDiv = d3.select($infoContainer[0])
+        var duplDiv = d3.select($infoInnerContainer[0])
             .append("div")
 //                .attr("class", "evo-rate-div")
                 .style("width", "33.3%")
@@ -711,19 +719,19 @@ Practice.Matrix.prototype.drawCircos = function() {
 
         svg.append("text")
             .attr("x", margin.left + boxWidth)
-            .attr("y", 25)
+            .attr("y", margin.top/2)
             .style("text-anchor", "middle")
             .text("Duplicability");
 
         svg.append("text")
             .attr("x", margin.left + boxWidth/2)
-            .attr("y", 335)
+            .attr("y", height - margin.bottom/2)
             .style("text-anchor", "middle")
             .text("All");
 
         svg.append("text")
             .attr("x", margin.left + boxWidth + boxWidth/2)
-            .attr("y", 335)
+            .attr("y", height - margin.bottom/2)
             .style("text-anchor", "middle")
             .text("Cluster");
 
@@ -745,7 +753,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             .call(yAxisDupl);
 //        
 //        // Universality
-        var univDiv = d3.select($infoContainer[0])
+        var univDiv = d3.select($infoInnerContainer[0])
             .append("div")
 //                .attr("class", "evo-rate-div")
                 .style("width", "33.3%")
@@ -766,19 +774,19 @@ Practice.Matrix.prototype.drawCircos = function() {
 
         svg.append("text")
             .attr("x", margin.left + boxWidth)
-            .attr("y", 25)
+            .attr("y", margin.top/2)
             .style("text-anchor", "middle")
             .text("Universality");
 
         svg.append("text")
             .attr("x", margin.left + boxWidth/2)
-            .attr("y", 335)
+            .attr("y", height - margin.bottom/2)
             .style("text-anchor", "middle")
             .text("All");
 
         svg.append("text")
             .attr("x", margin.left + boxWidth + boxWidth/2)
-            .attr("y", 335)
+            .attr("y", height - margin.bottom/2)
             .style("text-anchor", "middle")
             .text("Cluster");
 
