@@ -3,41 +3,9 @@
  *
  * @class
  */
-Practice.Matrix = function( expressionClusters, orthologyClusters, elementDict ) {
+Practice.Matrix = function( species ) {
 
-	var i, j;
-
-	// An "element" is the basic data unit, e.g. a gene or an orthologous group
-	// A "cluster" contains elements
-	// A "clustering" is the particular set of clusters into which the elements are split
-	this.expressionClusters = expressionClusters;
-	this.orthologyClusters = orthologyClusters;
-	this.geneToOG = elementDict;
-	this.allElements = [];
-
-	// Size of matrices is determined by size of clusters
-	this.numexpressionClusters = Object.keys( this.expressionClusters ).length;
-	this.numorthologyClusters = Object.keys( this.orthologyClusters ).length;
-	this.matrixSize = this.numexpressionClusters + this.numorthologyClusters;
-
-	// Set up empty matrices
-	// elementMatrix will contain elements
-	// numMatrix will contain numbers and be used to create the diagram
-	this.elementMatrix = [];
-	this.numMatrix = [];
-	for ( i = 0, ilen = this.matrixSize; i < ilen; i++ ) {
-		this.elementMatrix[i] = [];
-		this.numMatrix[i] = [];
-		for ( j = 0, jlen = this.matrixSize; j < jlen; j++ ) {
-			this.elementMatrix[i][j] = [];
-		}
-	}
-
-	// For labels
-	// WARNING!
-	// The following relies on clutering_id being of the form: species_type_cluster_numClusters
-	var idSpecies = this.expressionClusters[0].analysis_id.split( '_' )[0];
-	switch ( idSpecies ) {
+	switch ( species ) {
 		case 'anoph':
 			this.species = 'Anopheles';
 			break;
@@ -48,116 +16,9 @@ Practice.Matrix = function( expressionClusters, orthologyClusters, elementDict )
 };
 
 /*
- * Create the elements
- */
-Practice.Matrix.prototype.makeElements = function() {
-
-	// TODO Make use of the id field to get coordinates
-
-	var i, j, clusterMembers, type1Name, type2Name, type1Coo, type2Coo, anElement,
-		// Reverse dictionary of type 2 clusters and elements
-		type2ElementToType2Cluster = {};
-
-	for ( i = 0, ilen = this.orthologyClusters.length; i < ilen; i++ ) {
-		clusterMembers = this.orthologyClusters[i].member_ids;
-		for ( j = 0, jlen = clusterMembers.length; j < jlen; j++ ) {
-			type2ElementToType2Cluster[clusterMembers[j]] = i;
-		}
-	}
-
-	// Create new elements and first give them type 1 names and type 1 coordinates
-	type2NameUndefinedCount = 0;
-	for ( i = 0, ilen = this.expressionClusters.length; i < ilen; i++ ) {
-		clusterMembers = this.expressionClusters[i].member_ids;
-		console.log( 'Cluster ' + i + ' has ' + clusterMembers.length + ' elements' );
-		for ( j = 0, jlen = clusterMembers.length; j < jlen; j++ ) {
-
-			// Set up variables for making new elements
-			type1Name = clusterMembers[j];
-			type1Coo = i;
-			type2Name = this.geneToOG[type1Name]; // TODO sort this out!
-			type2Coo = type2ElementToType2Cluster[type2Name];
-
-			// Ignore any type 1 elements that do not map to type 2 elements
-			// (Type 2 elements that do not map to type 1 elements are automatically ignored
-			// because type 2 elements are never iterated over)
-			if ( type2Name !== undefined && type2Coo !== undefined ) {
-				anElement = new Practice.Element(
-					type1Name,
-					type2Name,
-					type1Coo,
-					type2Coo
-				);
-				this.allElements.push( anElement );
-			}
-
-		}
-	}
-
-};
-
-/*
- * Create the matrix of elements
- *
- * E.g. matrix for 3 type 1 clusters and 2 type 2 clusters:
- *
- * 0 0 X X X
- * 0 0 X X X
- * X X 0 0 0
- * X X 0 0 0
- * X X 0 0 0
- *
- */
-Practice.Matrix.prototype.makeElementMatrix = function() {
-
-	var i, row, col;
-
-	for ( i = 0, ilen = this.allElements.length; i < ilen; i++ ) {
-
-		row = this.allElements[i].type2Coo;
-		col = this.allElements[i].type1Coo + this.numorthologyClusters;
-
-		this.elementMatrix[row][col].push( this.allElements[i] );
-		this.elementMatrix[col][row].push( this.allElements[i] );
-
-	}
-
-};
-
-/*
- * Create the size matrix
- */
-Practice.Matrix.prototype.makenumMatrix = function() {
-
-	var i, j, count;
-
-	for ( i = 0, ilen = this.matrixSize; i < ilen; i++ ) {
-		for ( j = 0, jlen = this.matrixSize; j < jlen; j++ ) {
-			this.numMatrix[i][j] = this.elementMatrix[i][j].length;
-		}
-		// Check matrix looks right
-		console.log( this.numMatrix[i].toString() );
-	}
-
-	// Check all elements are in matrix
-	count = 0;
-	for ( i = 0, ilen = this.matrixSize; i < ilen; i++ ) {
-		for ( j = 0, jlen = this.matrixSize; j < jlen; j++ ) {
-			count += this.numMatrix[i][j];
-		}
-	}
-	console.log( count === 2 * this.allElements.length );
-
-};
-
-/*
  * Draw the circos diagram
  */
 Practice.Matrix.prototype.drawCircos = function() {
-
-	this.makeElements();
-	this.makeElementMatrix();
-	this.makenumMatrix();
 
 	var expand = function() {
 
@@ -232,38 +93,65 @@ Practice.Matrix.prototype.drawCircos = function() {
     $popupContainer.append( $graphContainer, $infoContainer );
 	$( '.diagrams-container' ).append( $diagramContainerContainer );
 
-	// For accessing this in the findColor function
+	// For accessing this in the coloring functions
 	var that = this;
 
-	var findColor = function( x ) {
+	var colorGroup = function( x ) {
+
 		if ( colorExpressionClusters ) {
-			if ( x < that.numorthologyClusters ) {
+			// Clusters with lower indices are black
+			if ( x < that.numOrthologyClusters ) {
 	    		return "#000000";
 	    	} else {
-	    		return fill( x - that.numorthologyClusters );
+	    		return fill( x - that.numOrthologyClusters );
 	    	}
 		} else {
-			if ( x < that.numorthologyClusters ) {
-	    		return fill( x - that.numorthologyClusters );
+			// Clusters with higher indices are black
+			if ( x < that.numOrthologyClusters ) {
+	    		return fill( x );
 	    	} else {
 	    		return "#000000";
 	    	}
 		}
+
 	};
 
-	var findIndex = function( d ) {
-		if ( colorExpressionClusters ) {
-			return Math.max( d.target.index, d.source.index );
-		} else {
-			return Math.min( d.target.index, d.source.index );
+	var checkSignificance = function( d ) {
+		// Do node chord analysis on d.target.index and d.source.index
+		var o = Math.min( d.target.index, d.source.index );
+		var e = Math.max( d.target.index, d.source.index ) - that.numOrthologyClusters;
+
+		if ( that.pValuesOfChords[o][e]['direction'] === 'Over' ) {
+			return 1;
 		}
+		return 0;
+	};
+
+	var colorChord = function( d ) {
+
+		var x, significance;
+
+		significance = checkSignificance( d );
+		if ( significance === 1 ) {
+			// Chords with over-representation
+			return "#FFCC14";
+		}
+		if ( colorExpressionClusters ) {
+			// Color the chords the same as the expression clusters
+			x = Math.max( d.target.index, d.source.index ) - that.numOrthologyClusters;
+		} else {
+			// Color the chords the same as the orthology clusters
+			x = Math.min( d.target.index, d.source.index );
+		}
+		return fill( x );
+
 	};
 
 	// The following is adapted from http://bl.ocks.org/mbostock/4062006
 	var chord = d3.layout.chord()
 	    .padding(.05)
 	    .sortSubgroups(d3.descending)
-	    .matrix(this.numMatrix);
+	    .matrix(this.circosMatrix);
 
 	var width = 200,
 	    height = 200,
@@ -272,7 +160,9 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	var fill = d3.scale.ordinal()
 	    .domain(d3.range(10))
-	    .range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
+	    //.range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
+	    //.range(["#D8DFE5"]);
+	    .range(["#CBD4DA", "#BBD9EE"]);
 
 	var svg = d3.select($svgInnerContainer[0]).append("svg")
 	    .attr("viewBox", "0 0 " + width + " " + height)
@@ -282,8 +172,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	svg.append("g").selectAll("path")
 	    .data(chord.groups)
 	  .enter().append("path")
-	    .style("fill", function(d) { return findColor(d.index); })
-	    .style("stroke", function(d) { return findColor(d.index); })
+	    .style("fill", function(d) { return colorGroup(d.index); })
+	    .style("stroke", function(d) { return colorGroup(d.index); })
 	    .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
 	    .on("mouseover", fade(0))
 	    .on("mouseout", fade(1))
@@ -295,8 +185,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .data(chord.chords)
 	  .enter().append("path")
 	    .attr("d", d3.svg.chord().radius(innerRadius))
-	    .style("fill", function(d) { return findColor(findIndex(d)); })
-	    .style("stroke", function(d) { return findColor(findIndex(d)); })
+	    .style("fill", function(d) { return colorChord(d); })
+	    .style("stroke", function(d) { return colorChord(d); })
 	    .style("opacity", 1);
 
 	// Returns an event handler for fading a given chord group.
@@ -310,7 +200,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 	}
     
     function getFacets (a) {
-        var orthoLen = that.numorthologyClusters,
+        var orthoLen = that.numOrthologyClusters,
             exprLen = that.numexpressionClusters,
             clusterIndex = a.index,
             species = that.species,
