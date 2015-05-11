@@ -224,7 +224,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 	$diagramContainer.append( $svgContainer );
 	$diagramContainerContainer.append( $diagramContainer );
     $graphContainer.append( $diagramContainerBig );
-    $infoContainer.append( $infoTitle );
+//    $infoContainer.append( $infoTitle );
     $popupContainer.append( $graphContainer, $infoContainer );
 	$( '.diagrams-container' ).append( $diagramContainerContainer );
 
@@ -477,7 +477,7 @@ Practice.Matrix.prototype.drawCircos = function() {
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
         
         // Set the dimensions of the canvas / graph
-        var margin = {top: 30, right: 20, bottom: 30, left: 50},
+        var margin = {top: 30, bottom: 30, left: 30, right: 20},
             // The line plot indide info panel gets its dimensions from graphContainer
             // maybe TODO ?
             width = $graphContainer.width() - margin.left - margin.right,
@@ -592,82 +592,213 @@ Practice.Matrix.prototype.drawCircos = function() {
     }
     
     // Display information about the cluster that you are hovering over.
-    function showInfoPanelOrtho(buckets) {
+    function showInfoPanelOrtho(clusterBuckets, genomeBuckets) {
         // TODO Test if we are in the enlarged display
         var minSpeciesRatio = 10000,
+            clusters = [clusterBuckets, genomeBuckets],
+            orthologyValues = [],
             ogClusterStats = [];
         
-        for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
-            ogClusterStats.push({
-                'evoRate': buckets[i].evo_rate_f,
-                'speciesRatio': buckets[i].frac_species_f,
-                'ogid': buckets[i].id
-            });
+        for ( var i = 0, ilen = clusters.length; i < ilen; i++ ) {
+//            orthologyValues.push([]);
+            
+            orthologyValues[i] = {
+                'evorHist': clusters[i].evor.buckets,
+                'evorMean': clusters[i].evorMean,
+                'evorPerc': clusters[i].evoPerc,
+                'duplHist': clusters[i].dupl.buckets,
+                'duplMean': clusters[i].duplMean,
+                'duplPerc': clusters[i].duplPerc,
+                'univHist': clusters[i].univ.buckets,
+                'univMean': clusters[i].univMean,
+                'univPerc': clusters[i].univPerc
+            };
+        };
+        
+        console.log(orthologyValues)
 
-            if ( buckets[i].frac_species_f < minSpeciesRatio ) {
-                minSpeciesRatio = buckets[i].frac_species_f;
-            }
-        }
-
-        /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
+        /* From vector-violin.js@ninjaviewer (mostly) */
         
         // Set the dimensions of the canvas / graph
-        var margin = {top: 30, right: 20, bottom: 30, left: 50},
-            // The line plot indide info panel gets its dimensions from graphContainer
-            // maybe TODO ?
+        var margin = {top: 30, bottom: 30, left: 30, right: 20},
             width = $graphContainer.width() - margin.left - margin.right,
             height = $graphContainer.height() - margin.top - margin.bottom;
-
-        // Set the ranges
-        var x = d3.scale.linear().range([0, width]);
-        var y = d3.scale.linear().range([height, 0]);
-
-        // Define the axes
-        var xAxis = d3.svg.axis().scale(x)
-            .orient("bottom").ticks(5);
-
-        var yAxis = d3.svg.axis().scale(y)
-            .orient("left").ticks(5);
-
-        // Add the div for the hoverbox.
-        var hoverDiv = d3.select("body").append("div")
-            .attr("class", "tooltip")
-            .style("opacity", 0);
-
-        // Adds the svg canvas
-        var infoPanelsvg = d3.select($infoContainer[0])
-            .append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-                .attr("transform", 
-                      "translate(" + margin.left + "," + margin.top + ")");
-
-        // Get the data
-        var data = ogClusterStats;
         
-        // Scale the range of the data
-        x.domain(d3.extent(data, function(d) { return d.evoRate; }));
-        y.domain([minSpeciesRatio, d3.max(data, function(d) { return d.speciesRatio; })]);
+        console.log('dimensions', width, height, margin)
 
-        // Add the dots 
-        infoPanelsvg.selectAll("dot")
-            .data(data)
-            .enter().append("circle")
-            .attr("r", 1.5)
-            .attr("cx", function(d) { return x(d.evoRate); })
-            .attr("cy", function(d) { return y(d.speciesRatio); });
+        var boxSpacing = 10;
+        var boxWidth = width / 6 - boxSpacing;
+
+        var domain = [0, 4];
+        var resolution = 20;
+        var d3ObjId = "violin";
+        var interpolation = 'basis';
         
-        // Add the X Axis
-        infoPanelsvg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + height + ")")
-            .call(xAxis);
+        var evoRateDiv = d3.select($infoContainer[0])
+            .append("div")
+//                .attr("class", "evo-rate-div")
+                .style("width", "33.3%")
+                .style("height", height + "px")
 
-        // Add the Y Axis
-        infoPanelsvg.append("g")
-            .attr("class", "y axis")
-            .call(yAxis);
+        var svg = evoRateDiv.append("svg")
+            .attr("style", 'width: 100%; height: 100%; border: 0');
+
+        var yEvor = d3.scale.linear()
+            .range([height - margin.bottom, margin.top])
+            .domain(domain)
+            .nice();
+
+        var yAxisEvor = d3.svg.axis()
+            .scale(yEvor)
+            .orient("left");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth)
+            .attr("y", 25)
+            .style("text-anchor", "middle")
+            .text("Evolutionary Rate");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth/2)
+            .attr("y", 335)
+            .style("text-anchor", "middle")
+            .text("All");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth + boxWidth/2)
+            .attr("y", 335)
+            .style("text-anchor", "middle")
+            .text("Cluster");
+        
+        // add the global chart
+        var g = svg.append("g").attr("transform", "translate(" + (0 * (boxWidth) + margin.left) + ",0)");
+
+        addViolin(g, orthologyValues[1].evorHist, [height - margin.bottom, margin.top], boxWidth, domain, resolution, interpolation, 0.25, false);
+        addBoxPlot(g, orthologyValues[1].evorPerc, orthologyValues[1].evorMean, [height - margin.bottom, margin.top], boxWidth, domain, .15, false);
+
+        // add the chart for the cluster
+        g = svg.append("g").attr("transform", "translate(" + (1 * (boxWidth) + margin.left) + ",0)");
+
+        addViolin(g, orthologyValues[0].evorHist, [height - margin.bottom, margin.top], boxWidth, domain, resolution, interpolation, 0.25, false);
+        addBoxPlot(g, orthologyValues[0].evorPerc, orthologyValues[0].evorMean, [height - margin.bottom, margin.top], boxWidth, domain, .15, false);
+
+        svg.append("g")
+            .attr('class', 'axis')
+            .attr("transform", "translate(" + margin.left + ",0)")
+            .call(yAxisEvor);
+            
+        // Duplicability
+        var duplDiv = d3.select($infoContainer[0])
+            .append("div")
+//                .attr("class", "evo-rate-div")
+                .style("width", "33.3%")
+                .style("height", height + "px")
+
+        svg = duplDiv.append("svg")
+            .attr("style", 'width: 100%; height: 100%; border: 0');
+
+        domain = [1, 31];
+        var yDupl = d3.scale.log()
+            .range([height - margin.bottom, margin.top])
+            .domain(domain)
+            .nice();
+
+        var yAxisDupl = d3.svg.axis()
+            .scale(yDupl)
+            .orient("left")
+            .ticks(3, ",.1s")
+            .tickSize(6, 0);
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth)
+            .attr("y", 25)
+            .style("text-anchor", "middle")
+            .text("Duplicability");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth/2)
+            .attr("y", 335)
+            .style("text-anchor", "middle")
+            .text("All");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth + boxWidth/2)
+            .attr("y", 335)
+            .style("text-anchor", "middle")
+            .text("Cluster");
+
+        g = svg.append("g").attr("transform", "translate(" + (0 * (boxWidth) + margin.left) + ",0)");
+        //var g = svg.append("g").attr("transform", "translate(" + (0 * (boxWidth + boxSpacing) + margin.left) + ",-" + margin.top + ")");
+
+        addViolin(g, orthologyValues[1].duplHist, [height - margin.bottom, margin.top], boxWidth, domain, resolution, interpolation, 0.25, true);
+        addBoxPlot(g, orthologyValues[1].duplPerc, orthologyValues[1].duplMean, [height - margin.bottom, margin.top], boxWidth, domain, .15, true);
+
+        // add the chart for the cluster
+        g = svg.append("g").attr("transform", "translate(" + (1 * (boxWidth) + margin.left) + ",0)");
+
+        addViolin(g, orthologyValues[0].duplHist, [height - margin.bottom, margin.top], boxWidth, domain, resolution, interpolation, 0.25, true);
+        addBoxPlot(g, orthologyValues[0].duplPerc, orthologyValues[0].duplMean, [height - margin.bottom, margin.top], boxWidth, domain, .15, true);
+
+        svg.append("g")
+            .attr('class', 'axis')
+            .attr("transform", "translate(" + (margin.left) + ",0)")
+            .call(yAxisDupl);
+//        
+//        // Universality
+        var univDiv = d3.select($infoContainer[0])
+            .append("div")
+//                .attr("class", "evo-rate-div")
+                .style("width", "33.3%")
+                .style("height", height + "px")
+
+        svg = univDiv.append("svg")
+            .attr("style", 'width: 100%; height: 100%; border: 0');
+
+        domain = [0, 1];
+        var yUniv = d3.scale.linear()
+            .range([height - margin.bottom, margin.top])
+            .domain(domain)
+            .nice();
+
+        var yAxisUniv = d3.svg.axis()
+            .scale(yUniv)
+            .orient("left");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth)
+            .attr("y", 25)
+            .style("text-anchor", "middle")
+            .text("Universality");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth/2)
+            .attr("y", 335)
+            .style("text-anchor", "middle")
+            .text("All");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth + boxWidth/2)
+            .attr("y", 335)
+            .style("text-anchor", "middle")
+            .text("Cluster");
+
+
+        g = svg.append("g").attr("transform", "translate(" + (0 * (boxWidth) + margin.left) + ",0)");
+        //var g = svg.append("g").attr("transform", "translate(" + (0 * (boxWidth + boxSpacing) + margin.left) + ",-" + margin.top + ")");
+
+        addViolin(g, orthologyValues[1].univHist, [height - margin.bottom, margin.top], boxWidth, domain, resolution, interpolation, 0.25, false);
+        addBoxPlot(g, orthologyValues[1].univPerc, orthologyValues[1].univMean, [height - margin.bottom, margin.top], boxWidth, domain, .15, false);
+
+        // add the chart for the cluster
+        g = svg.append("g").attr("transform", "translate(" + (1 * (boxWidth) + margin.left) + ",0)");
+
+        addViolin(g, orthologyValues[0].univHist, [height - margin.bottom, margin.top], boxWidth, domain, resolution, interpolation, 0.25, false);
+        addBoxPlot(g, orthologyValues[0].univPerc, orthologyValues[0].univMean, [height - margin.bottom, margin.top], boxWidth, domain, .15, false);
+
+        svg.append("g")
+            .attr('class', 'axis')
+            .attr("transform", "translate(" + margin.left + ",0)")
+            .call(yAxisUniv);
     }
     
     function getConditionInfo(conditionId) {
@@ -689,3 +820,169 @@ Practice.Matrix.prototype.drawCircos = function() {
 	// Give diagramsContainer a minimum height
 	$diagramContainer.css( 'min-height', $diagramContainerContainer.height() );
 };
+
+function addViolin(svg, results, range, width, domain, resolution, interpolation, imposeMax, log) {
+
+
+    var dx = (domain[1] / resolution) / 2;
+    // for x axis
+    var y = d3.scale.linear()
+        .range([width / 2, 0])
+        .domain([0, Math.max(d3.max(results, function (d) {
+            return d.count * 1.5;
+        }))]); //0 -  max probability
+
+
+    if (log) {
+        var x = d3.scale.log()
+            .range(range)
+            .domain(domain)
+            .nice();
+        console.log('Printing log in violin');
+    } else {
+        // for y axis
+        var x = d3.scale.linear()
+            .range(range)
+            .domain(domain)
+            .nice();
+    }
+
+
+    console.log("Now printing scaled violin area data");
+    var area = d3.svg.area()
+        .interpolate(interpolation)
+        .x(function (d) {
+            if (interpolation == "step-before") {
+                //console.log(x(d.x + d.dx / 2));
+                return x(d.val + dx)
+            }
+//            console.log('*' + d.val + ':' + x(d.val));
+            return x(d.val);
+        })
+        .y0(width / 2)
+        .y1(function (d) {
+            return y(d.count);
+        });
+
+    var line = d3.svg.line()
+        .interpolate(interpolation)
+        .x(function (d) {
+            if (interpolation == "step-before")
+                return x(d.val + dx);
+            return x(d.val);
+        })
+        .y(function (d) {
+            return y(d.count);
+        });
+
+    var gPlus = svg.append("g");
+    var gMinus = svg.append("g");
+
+    gPlus.append("path")
+        .datum(results)
+        .attr("class", "area")
+        .attr("d", area);
+
+    gPlus.append("path")
+        .datum(results)
+        .attr("class", "violin")
+        .attr("d", line);
+
+
+    gMinus.append("path")
+        .datum(results)
+        .attr("class", "area")
+        .attr("d", area);
+
+    gMinus.append("path")
+        .datum(results)
+        .attr("class", "violin")
+        .attr("d", line);
+
+    var x = width;
+
+    gPlus.attr("transform", "rotate(90,0,0)  translate(0,-" + width + ")");//translate(0,-200)");
+    gMinus.attr("transform", "rotate(90,0,0) scale(1,-1)");
+
+
+}
+
+function addBoxPlot(svg, elmProbs, elmMean, range, width, domain, boxPlotWidth, log) {
+    if (log) {
+        var y = d3.scale.log()
+            .range(range)
+            .domain(domain)
+            .nice();
+        console.log('Printing log in boxplot');
+
+    } else {
+
+        var y = d3.scale.linear()
+            .range(range)
+            .domain(domain)
+            .nice();
+    }
+
+    var x = d3.scale.linear()
+        .range([0, width]);
+
+    var left = 0.5 - boxPlotWidth / 2;
+    var right = 0.5 + boxPlotWidth / 2;
+
+    var probs = [0.05, 0.25, 0.5, 0.75, 0.95];
+    for (var i = 0; i < probs.length; i++) {
+        probs[i] = y(elmProbs[i]);
+    }
+
+    var gBoxPlot = svg.append("g")
+
+
+    gBoxPlot.append("rect")
+        .attr("class", "boxplot fill")
+        .attr("x", x(left))
+        .attr("width", x(right) - x(left))
+        .attr("y", probs[3])
+        .attr("height", -probs[3] + probs[1]);
+
+    var iS = [0, 2, 4];
+    var iSclass = ["", "median", ""];
+    for (var i = 0; i < iS.length; i++) {
+        gBoxPlot.append("line")
+            .attr("class", "boxplot " + iSclass[i])
+            .attr("x1", x(left))
+            .attr("x2", x(right))
+            .attr("y1", probs[iS[i]])
+            .attr("y2", probs[iS[i]])
+    }
+
+    iS = [[0, 1], [3, 4]];
+    for (i = 0; i < iS.length; i++) {
+        gBoxPlot.append("line")
+            .attr("class", "boxplot")
+            .attr("x1", x(0.5))
+            .attr("x2", x(0.5))
+            .attr("y1", probs[iS[i][0]])
+            .attr("y2", probs[iS[i][1]]);
+    }
+
+    gBoxPlot.append("rect")
+        .attr("class", "boxplot")
+        .attr("x", x(left))
+        .attr("width", x(right) - x(left))
+        .attr("y", probs[3])
+        .attr("height", -probs[3] + probs[1]);
+
+    gBoxPlot.append("circle")
+        .attr("class", "boxplot mean")
+        .attr("cx", x(0.5))
+        .attr("cy", y(elmMean))
+        .attr("r", x(boxPlotWidth / 5));
+
+    gBoxPlot.append("circle")
+        .attr("class", "boxplot mean")
+        .attr("cx", x(0.5))
+        .attr("cy", y(elmMean))
+        .attr("r", x(boxPlotWidth / 10));
+
+
+}
