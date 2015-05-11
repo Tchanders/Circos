@@ -310,6 +310,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             exprLen = that.numexpressionClusters,
             clusterIndex = a.index,
             species = that.species,
+            analysis_id,
             clusterId,
             ids;
         
@@ -322,42 +323,47 @@ Practice.Matrix.prototype.drawCircos = function() {
         console.log(clusterIndex + ' ' + species);
         if ( clusterIndex + 1 <= orthoLen ) {
             console.log("we are in ortho");
-            var analysis_id = that.orthologyClusters[clusterIndex].analysis_id
+            analysis_id = that.orthologyClusters[clusterIndex].analysis_id
             ids = that.orthologyClusters[clusterIndex].member_ids;
             clusterId = analysis_id + '_' + ('000'+clusterIndex.toString()).slice(-3);
         } else {
             console.log("we are in expr");
-            var exprIndex = clusterIndex - orthoLen,
-                analysis_id = that.expressionClusters[exprIndex].analysis_id;
+            var exprIndex = clusterIndex - orthoLen;
+            analysis_id = that.expressionClusters[exprIndex].analysis_id;
             ids = that.expressionClusters[exprIndex].member_ids;
             clusterId = analysis_id + '_' + ('000' + exprIndex.toString() ).slice(-3);
         }
             
-        var idsString = '(' + ids[0];
-        for ( var i = 1, ilen = ids.length; i < ilen; i++ ) {
-            idsString += ' OR ' + ids[i];
-        }
-        idsString += ')';
-
-        var promise;
+        // Construct the request
+        var promise1,
+            promise2 = getFacetData( 'member_ids',
+                                     'gene_id',
+                                     'analysis_id:' + analysis_id);
+        
         if ( clusterIndex + 1 <= orthoLen ) {
-            promise = getFacetData( 'member_ids',
+            promise1 = getFacetData( 'member_ids',
                                     'id',
                                     'id:' + clusterId);
         } else {
-            // Construct the request
-            promise = getFacetData( 'member_ids',
+            promise1 = getFacetData( 'member_ids',
                                     'gene_id',
                                     'id:' + clusterId );
         }
-
-        $.when( promise ).done( function( v1i ) {
+        
+        $.when( promise1, promise2 ).done( function( v1i, v2i ) {
             if ( clusterIndex + 1 <= orthoLen ) {
                 var buckets = v1i.response.docs;
                 showInfoPanelOrtho(buckets);
             } else {
-                var buckets = v1i.facets.conditions.buckets;
-                showInfoPanelExpr(buckets);
+                /* The response is an array with three elements:
+                 *   [0]: The actual response from solr.
+                 *   [1]: success or failure. Mayne check for this before proceeding?
+                 *   [2]: Info from Ajax. Useless.
+                 * So we always have to the 0th element of the response.
+                 */
+                var clusterBuckets = v1i[0].facets.conditions.buckets,
+                    genomeBuckets = v2i[0].facets.conditions.buckets;
+                showInfoPanelExpr(clusterBuckets, genomeBuckets);
             }
         });
     }
@@ -380,12 +386,8 @@ Practice.Matrix.prototype.drawCircos = function() {
                         "limit : 0," +
                         "sort  : { index: 'asc' }," +
                         "facet : {" +
-                            "sum   : 'sum(expression_value_d)'," +
                             "sumsq : 'sumsq(expression_value_d)'," +
                             "avg   : 'avg(expression_value_d)'" +
-//                            "max   : 'max(expression_value_d)'," +
-//                            "min   : 'min(expression_value_d)'," +
-//                            "percentiles    : 'percentile(expression_value_d, 25, 50, 75, 99, 99.9)'" +
                         "}" +
                     "}" +
                 "}" +
@@ -394,8 +396,6 @@ Practice.Matrix.prototype.drawCircos = function() {
         
         return $.ajax({
             url: 'http://localhost:8983/solr/circos/query',
-            // jsopn is not compatible with POST
-            method: "POST",
             dataType: 'jsonp',
             jsonp: 'json.wrf',
             data: data
@@ -403,24 +403,58 @@ Practice.Matrix.prototype.drawCircos = function() {
     }
 
     // Display information about the cluster that you are hovering over.
-    function showInfoPanelExpr(buckets) {
+    function showInfoPanelExpr(clusterBuckets, genomeBuckets) {
         // TODO Test if we are in the enlarged display
-        var conditionsExpressionValues = [],
+        var clusters = [clusterBuckets, genomeBuckets],
             expressionValues = [],
-            minExpressionValue = 10000;
+            minYaxisValue = +Infinity,
+            maxYaxisValue = -Infinity;
         
-        for ( var i = 0, ilen = buckets.length; i < ilen; i++ ) {
-            conditionsExpressionValues.push({
-                'condition': i + 1,
-                'value': buckets[i].avg,
-                'conditionId': buckets[i].val
-            });
+        for ( var i = 0, ilen = clusters.length; i < ilen; i++ ) {
+            expressionValues.push([]);
+            
+            var conditionIds = [];
+            if ( i === 1 ) {
+                // Construct an array with all the condition ids so that they can
+                // be used to filter the genome ids.
+                for ( var k = 0, klen = expressionValues[0].length; k < klen; k++ ) {
+                    conditionIds.push(expressionValues[0][k].conditionId);
+                }
+            }
+            
+            var nOfSkippedConditions = 0;            
+            for ( var j = 0, jlen = clusters[i].length; j < jlen; j++ ) {
+                var condition = j + 1 - nOfSkippedConditions,
+                    conditionId = clusters[i][j].val,
+                    mean = clusters[i][j].avg,
+                    variance = ((clusters[i][j].sumsq / clusters[i][j].count) - Math.pow(clusters[i][j].avg, 2)),
+                    minConfidenceInterval = mean - 2 * Math.sqrt(variance),
+                    maxConfidenceInterval = mean + 2 * Math.sqrt(variance);
+                
+                if ( (i === 1 && $.inArray(conditionId, conditionIds) > -1) ||
+                     ( i === 0 ) ) {
+                    expressionValues[i].push({
+                        'condition': condition,
+                        'mean': mean,
+                        'variance': variance,
+                        'minConfidenceInterval': minConfidenceInterval,
+                        'maxConfidenceInterval': maxConfidenceInterval,
+                        'conditionId': conditionId
+                    });
 
-            if ( buckets[i].avg < minExpressionValue ) {
-                minExpressionValue = buckets[i].avg;
+                    if ( minYaxisValue > minConfidenceInterval ) {
+                        minYaxisValue = minConfidenceInterval
+                    };
+
+                    if ( maxYaxisValue < maxConfidenceInterval ) {
+                        maxYaxisValue = maxConfidenceInterval
+                    };
+                } else if ( i === 1 ) {
+                    nOfSkippedConditions++;
+                }
             }
         }
-
+        
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
         
         // Set the dimensions of the canvas / graph
@@ -441,11 +475,6 @@ Practice.Matrix.prototype.drawCircos = function() {
         var yAxis = d3.svg.axis().scale(y)
             .orient("left").ticks(5);
 
-        // Define the line
-        var valueline = d3.svg.line()
-            .x(function(d) { return x(d.condition); })
-            .y(function(d) { return y(d.value); });
-
         // Add the div for the hoverbox.
         var hoverDiv = d3.select("body").append("div")
             .attr("class", "tooltip")
@@ -461,24 +490,45 @@ Practice.Matrix.prototype.drawCircos = function() {
                       "translate(" + margin.left + "," + margin.top + ")");
 
         // Get the data
-        var data = conditionsExpressionValues;
+        var data = expressionValues[0];
         
         // Scale the range of the data
         x.domain(d3.extent(data, function(d) { return d.condition; }));
-        y.domain([minExpressionValue, d3.max(data, function(d) { return d.value; })]);
-
-        // Add the valueline path.
-        infoPanelsvg.append("path")
-            .attr("class", "line")
-            .attr("d", valueline(data));
+        y.domain(d3.extent([minYaxisValue, maxYaxisValue], function(d) { return d; }));
+        
+        // First draw the red lines for the genome confidence interval in the background;
+        data = expressionValues[1];
+        infoPanelsvg.selectAll("line")
+            .data(data)
+            .enter().append("svg:line")
+            .attr("class", "genome-line")
+            .attr("y1", function (d) { return y(d.maxConfidenceInterval); })
+            .attr("y2", function (d) { return y(d.minConfidenceInterval); })
+            .attr("x1", function (d) { return x(d.condition); })
+            .attr("x2", function (d) { return x(d.condition); })
+            .attr("stroke", "red");
+        
+        data = expressionValues[0];
+        
+        infoPanelsvg.selectAll("dot")
+            .data(data)
+            .enter().append("svg:line")
+            .attr("class", "cluster-line")
+            .attr("y1", function (d) { return y(d.maxConfidenceInterval); })
+            .attr("y2", function (d) { return y(d.minConfidenceInterval); })
+            .attr("x1", function (d) { return x(d.condition); })
+            .attr("x2", function (d) { return x(d.condition); })
+            .attr("stroke", "grey")
+            .attr("opacity", 0.8);
 
         // Add the dots 
         infoPanelsvg.selectAll("dot")
             .data(data)
-        .enter().append("circle")
-            .attr("r", 2.5)
+            .enter()
+            .append("circle")
+            .attr("r", 2)
             .attr("cx", function(d) { return x(d.condition); })
-            .attr("cy", function(d) { return y(d.value); })
+            .attr("cy", function(d) { return y(d.mean); })
             .on("mouseover", function(d) {
                 var conditionId = d.conditionId,
                     promise = getConditionInfo(conditionId),
