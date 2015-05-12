@@ -74,13 +74,15 @@ function getMatrix( inputData, callback ) {
 				} );
 
 				m = new Practice.Matrix( expressionClusters, orthologyClusters, geneToGroup );
-
+                
 				allResults = {
 					'pValue': m.pValue,
 					'circosMatrix': m.circosMatrix,
 					'numOrthologyClusters': m.numOrthologyClusters,
 					'numExpressionClusters': m.numExpressionClusters,
-					'pValuesOfChords': m.pValuesOfChords
+					'pValuesOfChords': m.pValuesOfChords,
+                    'expressionClusters': m.expressionClusters,
+                    'orthologyClusters': m.orthologyClusters
 				};
 
 				console.log( allResults );

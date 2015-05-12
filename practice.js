@@ -68,6 +68,8 @@ function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 		m.numOrthologyClusters = v.numOrthologyClusters,
 		m.numExpressionClusters = v.numExpressionClusters,
 		m.pValuesOfChords = v.pValuesOfChords;
+        m.expressionClusters = v.expressionClusters;
+        m.orthologyClusters = v.orthologyClusters;
 		m.drawCircos();
 	} );
 

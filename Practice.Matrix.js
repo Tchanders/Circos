@@ -213,7 +213,7 @@ Practice.Matrix.prototype.drawCircos = function() {
         } else {
             species = 'Plasmodium falciparum';
         }
-
+        
         console.log(clusterIndex + ' ' + species);
         if ( clusterIndex + 1 <= orthoLen ) {
             console.log("we are in ortho");
