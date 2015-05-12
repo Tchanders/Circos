@@ -26,6 +26,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 		if ( !bigDiagramExists ) {
 			$( '.diagrams-container' ).append( $popupContainer );
 			$diagramContainerBig.append( $( this ).parent() );
+            
+            $('.tooltip').css("opacity", 1);
 
 			bigDiagramExists = true;
 			$( '.expand-button' ).css( 'pointer-events', 'none' );
@@ -41,6 +43,12 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 		$popupContainer.detach();
 		$diagramContainer.append( $( this ).parent() );
+        
+        // Keep the non-selected groups their normal color
+        svg.selectAll(".group path")
+          .style("stroke", function(d) { return colorGroup(d.index); });
+        
+        $('.tooltip').css("opacity", 0);
 
 		bigDiagramExists = false;
 		$( '.expand-button' ).css( 'pointer-events', '' );
@@ -155,7 +163,7 @@ Practice.Matrix.prototype.drawCircos = function() {
         if ( significance === 1 ) {
             return 1;
         }
-        return 0.25;
+        return 0.4;
 
     };
 
@@ -223,6 +231,8 @@ Practice.Matrix.prototype.drawCircos = function() {
             analysis_id,
             clusterId,
             ids;
+        
+        $('.tooltip').css("opacity", 0);
 
         if ( species === 'Anopheles') {
             species = 'Anopheles gambiae';
@@ -236,7 +246,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             return d.index === clusterIndex;
           })
         .transition()
-          .style("stroke", "#FF0000");
+          .style("stroke", "#ff00cc");
 
         // Keep the non-selected groups their normal color
         svg.selectAll(".group path")
@@ -487,19 +497,14 @@ Practice.Matrix.prototype.drawCircos = function() {
                 $.when(promise).done(function (reply) {
                     // The response json array always has length 1
                     conditionName = reply.response.docs[0].name;
-                    console.log('inside' + conditionName);
                     hoverDiv.transition()
                         .duration(200)
                         .style("opacity", .9);
 
-                    hoverDiv.html(conditionName + '<br/>' + d.value)
+                    hoverDiv.html(conditionName)
                         .style("left", xcoord + "px")
                         .style("top", ycoord + "px");
                 });
-                console.log('outside' + conditionName);
-
-                // This should be inside the promise callback but then the
-                // d3 events are lost. TODO.
             })
             .on("mouseout", function(d) {
                 hoverDiv.transition()
