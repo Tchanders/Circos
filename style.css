@@ -17,6 +17,14 @@
 	background-color: #005D9A;
 }
 
+.legend-item-genome {
+	background-color: #fe1b1b;
+}
+
+.legend-item-cluster {
+	background-color: #b9b9b9;
+}
+
 .svg-container {
     position: relative;
 	width: 100%;
