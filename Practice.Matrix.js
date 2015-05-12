@@ -147,6 +147,18 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	};
 
+    var getChordOpacity = function( d ) {
+
+        var x, significance;
+
+        significance = checkSignificance( d );
+        if ( significance === 1 ) {
+            return 1;
+        }
+        return 0.25;
+
+    };
+
 	// The following is adapted from http://bl.ocks.org/mbostock/4062006
 	var chord = d3.layout.chord()
 	    .padding(.05)
@@ -160,8 +172,6 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	var fill = d3.scale.ordinal()
 	    .domain(d3.range(10))
-	    //.range(["#CE6262", "#D89263", "#DFDA73", "#5ACC8f", "#7771C1"]);
-	    //.range(["#D8DFE5"]);
 	    .range(["#CBD4DA", "#BBD9EE"]);
 
 	var svg = d3.select($svgInnerContainer[0]).append("svg")
@@ -169,15 +179,21 @@ Practice.Matrix.prototype.drawCircos = function() {
 	  .append("g")
 	    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
-	svg.append("g").selectAll("path")
+	svg.append("g")
+        .attr("class", "group")
+      .selectAll("path")
 	    .data(chord.groups)
 	  .enter().append("path")
 	    .style("fill", function(d) { return colorGroup(d.index); })
 	    .style("stroke", function(d) { return colorGroup(d.index); })
 	    .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
 	    .on("mouseover", fade(0))
-	    .on("mouseout", fade(1))
-        .on("mousedown", function(a) { getFacets(a) });
+	    .on("mouseout", fade(function(d) { return getChordOpacity(d); }))
+        .on("mousedown", function(a) {
+            if ( $($diagramContainerBig).children().length > 0 ) {
+                getFacets(a);
+            }
+        });
 
 	svg.append("g")
 	    .attr("class", "chord")
@@ -187,7 +203,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .attr("d", d3.svg.chord().radius(innerRadius))
 	    .style("fill", function(d) { return colorChord(d); })
 	    .style("stroke", function(d) { return colorChord(d); })
-	    .style("opacity", 1);
+	    .style("opacity", function(d) { return getChordOpacity(d); });
 
 	// Returns an event handler for fading a given chord group.
 	function fade(opacity) {
@@ -198,7 +214,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 	        .style("opacity", opacity);
 	  };
 	}
-    
+
     function getFacets (a) {
         var orthoLen = that.numOrthologyClusters,
             exprLen = that.numexpressionClusters,
@@ -207,13 +223,29 @@ Practice.Matrix.prototype.drawCircos = function() {
             analysis_id,
             clusterId,
             ids;
-        
+
         if ( species === 'Anopheles') {
             species = 'Anopheles gambiae';
         } else {
             species = 'Plasmodium falciparum';
         }
-        
+
+        // Give the clicked-on group a red border
+        svg.selectAll(".group path")
+          .filter(function(d) {
+            return d.index === clusterIndex;
+          })
+        .transition()
+          .style("stroke", "#FF0000");
+
+        // Keep the non-selected groups their normal color
+        svg.selectAll(".group path")
+          .filter(function(d) {
+            return d.index !== clusterIndex;
+          })
+        .transition()
+          .style("stroke", function(d) { return colorGroup(d.index); });
+
         console.log(clusterIndex + ' ' + species);
         if ( clusterIndex + 1 <= orthoLen ) {
             console.log("we are in ortho");
