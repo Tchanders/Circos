@@ -123,9 +123,9 @@ function calculateTestStatistic( observed, expected ) {
 
 /**
  * Calculates the degrees of freedom of a table based on the folmula:
- * degrees of freedom = (rows - 1) * (columns - 1)
+ * 		degrees of freedom = (rows - 1) * (columns - 1)
  *
- * NB In cases where this formula does not apply, the user should
+ * In cases where this formula does not apply, the user should
  * provide the degrees of freedom, and this function will not be called
  *
  * @param {Array[]} table 	A table of values relating two categorical variables
@@ -142,9 +142,9 @@ function calculateDegreesOfFreedom( table ) {
  *
  * @param {Array[]} table 	A table of values relating two categorical variables
  * @param {number} dF 		The degrees of freedom
- *                      	NB This should only be provided if not equal to
- *                      	(rows - 1) * (columns - 1)
- * @return {number[]} 		Array of length 2 containing the test statistic and the p-value
+ *                      	This should only be provided if not equal to:
+ *                      		(rows - 1) * (columns - 1)
+ * @return {number} 		The p-value
  */
 exports.calculate = function( table, dF ) {
 
@@ -169,8 +169,16 @@ exports.calculate = function( table, dF ) {
 	return p;
 };
 
-// Chord analysis
-
+/**
+ * Runs a chi-squared analysis on each chord
+ *
+ * @param {Array[]} table	A table of values relating two categorical variables
+ * @return {Array{}} 		2-d array of objects containing information about each chord:
+ *                        		* p-value, and if the p-value is significant,
+ *                        	 	* whether the clusters are over- or under-represented
+ *                          E.g. information about the chord linking orthology cluster 1 and
+ *                          expression cluster 2 is in the object located at allResults[1][2]
+ */
 exports.chordAnalysis = function( table ) {
 
 	var i, j, e, p, direction, thisResult;
@@ -189,6 +197,18 @@ exports.chordAnalysis = function( table ) {
 
 		for ( j = 0; j < numCols; j++ ) {
 
+			// Make a new 2x2 table comparing one expression cluster and
+			// one orthology cluster against all other clusters as follows:
+			//
+			// 					E(i) 	E(o)
+			// 			O(i)	[[X,	X],
+			// 			O(o)	 [X,	X]]
+			//
+			// E(i) is the expression cluster of interest
+			// E(o) is all other expression clusters
+			// O(i) is the orthology cluster of interest
+			// O(o) is all other orthology clusters
+
 			smallTable[0][0] = table[i][j];
 			smallTable[0][1] = rowSums[i] - table[i][j];
 			smallTable[1][0] = colSums[j] - table[i][j];
@@ -196,30 +216,33 @@ exports.chordAnalysis = function( table ) {
 
 			p = exports.calculate( smallTable );
 
-			// If the p value is significant, find out if it is an under- or over-representation
+			// The Bonferroni correction will be used to correct for multiple testing
+			// If the p-value is significant...
 			if ( p < ( 0.05 / numberOfTests ) ) {
-				// Calculate expected value for smallTable[0][0]
+				// ...calculate the expected number of elements in the clusters of interest...
 				e = ( rowSums[i] / total ) * ( colSums[j] / total ) * total;
-				// Find out if difference between observed and expected is positive or negative
-				if ( e - table[i][j] > 0 ) {
+				// ...and find out if it is greater or smaller than the observed value...
+				if ( table[i][j] > e ) {
+					// ...if observedis greater than expected then there is an over-representation
 					direction = 'Over';
-				} else if ( e - table[i][j] < 0 ) {
+				} else if ( table[i][j] < e ) {
+					// ...if observedis smaller than expected then there is an under-representation
 					direction = 'Under';
 				}
 			} else {
 				direction = null;
 			}
 
+			// Create the information object and put it at the correct location in allResults
 			thisResult = {
 				'p-value': p,
 				'direction': direction
 			};
-
 			allResults[i][j] = thisResult;
 
 		}
 	}
 
-	return allResults
+	return allResults;
 
 }
