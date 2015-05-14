@@ -12,7 +12,7 @@ var logFactorial = function( n ) {
 	if ( n === 0 ) {
 		return 0;
 	}
-	x = n * Math.log( n );
+	x = n * Math.log( n ) - n + 0.5 * Math.log( 2 * Math.PI * n );
 
 	console.log( 'log of ' + n + ' factorial is:' );
 	console.log( x );
@@ -43,9 +43,15 @@ module.exports.logHypergeometric = function( K, k, N, n ) {
 	x = logBinomial( K, k ) + logBinomial( N - K, n - k ) - logBinomial( N, n );
 	console.log( 'log of hypergeometric is' );
 	console.log( x );
+	y = Math.pow( Math.E, x )
+	console.log( 'hypergeometric is ');
+	console.log( y );
 	return x;
 };
 
-module.exports.logHypergeometric( 1, 1, 10000, 5000 );
+module.exports.logBinomial = logBinomial;
+module.exports.logFactorial = logFactorial;
+
+module.exports.logHypergeometric( 10, 1, 10000, 5000 );
 
 // var c = require( './nodeGoEnrichment' );
