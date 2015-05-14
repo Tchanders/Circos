@@ -38,6 +38,7 @@
 .diagram-container-container {
 	width: 33.3%;
 	min-width: 200px;
+	padding: 5px;
 	display: inline-block;
 }
 
@@ -45,7 +46,6 @@
 	display: inline-block;
 	position: relative;
 	width: 100%;
-	margin: 5px;
 	vertical-align: top;
 }
 
@@ -67,6 +67,7 @@
     position: absolute;
     top: 10px;
     width: 90%;
+    min-width: 970px;
     margin-left: auto;
     margin-right: auto;
 	border: 1px solid black;

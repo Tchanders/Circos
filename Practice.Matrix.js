@@ -68,7 +68,9 @@ Practice.Matrix.prototype.drawCircos = function() {
 		$title = $( '<p>' ).addClass( 'diagram-title' ).text( this.species ),
 		$infoTitle = $( '<p>' ).addClass( 'info-title' ).text( "Cluster Information" ),
         $infoInnerContainer = $( '<div>' ).addClass('info-inner-container').css("width", "100%"),
-        $infoInnerContainerText = $( '<p>' ).text("Click on a cluster to display information about it.").css("text-align", "center").css("width", "100%"),
+        $infoInnerContainerText = $( '<p>' ).text("Click on a cluster to display information about it.")
+            .css("text-align", "center")
+            .css("width", "100%"),
 
 		$closeButton = $( '<div>' )
 			.addClass( 'button small-button close-button' )
@@ -83,61 +85,61 @@ Practice.Matrix.prototype.drawCircos = function() {
 			.text( '+' )
 			.on( 'click', expand ),
 
-		$minimiseButton = $( '<div>' )
-			.addClass( 'button small-button minimise-button' )
-			.text( '−' )
-			.on( 'click', minimise )
-			.hide();
+        $minimiseButton = $( '<div>' )
+            .addClass( 'button small-button minimise-button' )
+            .text( '−' )
+            .on( 'click', minimise )
+            .hide();
 
-	$svgContainer.append( $title, $minimiseButton, $expandButton, $closeButton, $svgInnerContainer );
-	$diagramContainer.append( $svgContainer );
-	$diagramContainerContainer.append( $diagramContainer );
+    $svgContainer.append( $title, $minimiseButton, $expandButton, $closeButton, $svgInnerContainer );
+    $diagramContainer.append( $svgContainer );
+    $diagramContainerContainer.append( $diagramContainer );
     $graphContainer.append( $diagramContainerBig );
     $infoInnerContainer.append( $infoInnerContainerText);
     $infoContainer.append( $infoTitle, $infoInnerContainer );
     $popupContainer.append( $graphContainer, $infoContainer );
-	$( '.diagrams-container' ).append( $diagramContainerContainer );
+    $( '.diagrams-container' ).append( $diagramContainerContainer );
 
-	// For accessing this in the coloring functions
-	var that = this;
+    // For accessing this in the coloring functions
+    var that = this;
 
-	var colorGroup = function( x ) {
+    var colorGroup = function( x ) {
 
-		// Clusters with lower indices are black
-		if ( x < that.numOrthologyClusters ) {
-    		return "#000000";
-    	} else {
-    		return fill( x - that.numOrthologyClusters );
-    	}
+        // Clusters with lower indices are black
+        if ( x < that.numOrthologyClusters ) {
+            return "#000000";
+        } else {
+            return fill( x - that.numOrthologyClusters );
+        }
 
-	};
+    };
 
-	var checkSignificance = function( d ) {
-		// Do node chord analysis on d.target.index and d.source.index
-		var o = Math.min( d.target.index, d.source.index );
-		var e = Math.max( d.target.index, d.source.index ) - that.numOrthologyClusters;
+    var checkSignificance = function( d ) {
+        // Do node chord analysis on d.target.index and d.source.index
+        var o = Math.min( d.target.index, d.source.index );
+        var e = Math.max( d.target.index, d.source.index ) - that.numOrthologyClusters;
 
-		if ( that.pValuesOfChords[o][e]['direction'] === 'Over' ) {
-			return 1;
-		}
-		return 0;
-	};
+        if ( that.pValuesOfChords[o][e]['direction'] === 'Over' ) {
+            return 1;
+        }
+        return 0;
+    };
 
-	var colorChord = function( d ) {
+    var colorChord = function( d ) {
 
-		var x, significance;
+        var x, significance;
 
-		significance = checkSignificance( d );
-		if ( significance === 1 ) {
-			// Chords with over-representation
-			return "#FFCC14";
-		}
+        significance = checkSignificance( d );
+        if ( significance === 1 ) {
+            // Chords with over-representation
+            return "#FFCC14";
+        }
 
-		// Color the chords the same as the expression clusters
-		x = Math.max( d.target.index, d.source.index ) - that.numOrthologyClusters;
-		return fill( x );
+        // Color the chords the same as the expression clusters
+        x = Math.max( d.target.index, d.source.index ) - that.numOrthologyClusters;
+        return fill( x );
 
-	};
+    };
 
     var getChordOpacity = function( d ) {
 
@@ -151,61 +153,61 @@ Practice.Matrix.prototype.drawCircos = function() {
 
     };
 
-	// The following is adapted from http://bl.ocks.org/mbostock/4062006
-	var chord = d3.layout.chord()
-	    .padding(.05)
-	    .sortSubgroups(d3.descending)
-	    .matrix(this.circosMatrix);
+    // The following is adapted from http://bl.ocks.org/mbostock/4062006
+    var chord = d3.layout.chord()
+        .padding(.05)
+        .sortSubgroups(d3.descending)
+        .matrix(this.circosMatrix);
 
-	var width = 200,
-	    height = 200,
-	    innerRadius = Math.min(width, height) * .41,
-	    outerRadius = innerRadius * 1.1;
+    var width = 200,
+        height = 200,
+        innerRadius = Math.min(width, height) * .41,
+        outerRadius = innerRadius * 1.1;
 
-	var fill = d3.scale.ordinal()
-	    .domain(d3.range(10))
-	    .range(["#CBD4DA", "#BBD9EE"]);
+    var fill = d3.scale.ordinal()
+        .domain(d3.range(10))
+        .range(["#CBD4DA", "#BBD9EE"]);
 
-	var svg = d3.select($svgInnerContainer[0]).append("svg")
-	    .attr("viewBox", "0 0 " + width + " " + height)
-	  .append("g")
-	    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+    var svg = d3.select($svgInnerContainer[0]).append("svg")
+        .attr("viewBox", "0 0 " + width + " " + height)
+      .append("g")
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
-	svg.append("g")
+    svg.append("g")
         .attr("class", "group")
       .selectAll("path")
-	    .data(chord.groups)
-	  .enter().append("path")
-	    .style("fill", function(d) { return colorGroup(d.index); })
-	    .style("stroke", function(d) { return colorGroup(d.index); })
-	    .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
-	    .on("mouseover", fade(0))
-	    .on("mouseout", fade(function(d) { return getChordOpacity(d); }))
+        .data(chord.groups)
+      .enter().append("path")
+        .style("fill", function(d) { return colorGroup(d.index); })
+        .style("stroke", function(d) { return colorGroup(d.index); })
+        .attr("d", d3.svg.arc().innerRadius(innerRadius).outerRadius(outerRadius))
+        .on("mouseover", fade(0))
+        .on("mouseout", fade(function(d) { return getChordOpacity(d); }))
         .on("mousedown", function(a) {
             if ( $diagramContainerBig.children().length > 0 ) {
                 getFacets(a);
             }
         });
 
-	svg.append("g")
-	    .attr("class", "chord")
-	  .selectAll("path")
-	    .data(chord.chords)
-	  .enter().append("path")
-	    .attr("d", d3.svg.chord().radius(innerRadius))
-	    .style("fill", function(d) { return colorChord(d); })
-	    .style("stroke", function(d) { return colorChord(d); })
-	    .style("opacity", function(d) { return getChordOpacity(d); });
+    svg.append("g")
+        .attr("class", "chord")
+      .selectAll("path")
+        .data(chord.chords)
+      .enter().append("path")
+        .attr("d", d3.svg.chord().radius(innerRadius))
+        .style("fill", function(d) { return colorChord(d); })
+        .style("stroke", function(d) { return colorChord(d); })
+        .style("opacity", function(d) { return getChordOpacity(d); });
 
-	// Returns an event handler for fading a given chord group.
-	function fade(opacity) {
-	  return function(g, i) {
-	    svg.selectAll(".chord path")
-	        .filter(function(d) { return d.source.index != i && d.target.index != i; })
-	      .transition()
-	        .style("opacity", opacity);
-	  };
-	}
+    // Returns an event handler for fading a given chord group.
+    function fade(opacity) {
+      return function(g, i) {
+        svg.selectAll(".chord path")
+            .filter(function(d) { return d.source.index != i && d.target.index != i; })
+          .transition()
+            .style("opacity", opacity);
+      };
+    }
 
     function getFacets (a) {
         var orthoLen = that.numOrthologyClusters,
@@ -215,7 +217,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             analysis_id,
             clusterId,
             ids;
-        
+
         $('.tooltip').css("opacity", 0);
 
         if ( species === 'Anopheles') {
@@ -296,10 +298,10 @@ Practice.Matrix.prototype.drawCircos = function() {
     function getFacetData(from, to, initialParameter, filter) {
         var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter,
             data = {
-                'q'		: query,
-                'wt'	: 'json',
+                'q'     : query,
+                'wt'    : 'json',
                 'indent': 'true',
-                'rows' 	: '20000'};
+                'rows'  : '20000'};
 
         if ( initialParameter.indexOf('expr') > -1 ) {
             data['rows'] = 1;
@@ -736,8 +738,6 @@ Practice.Matrix.prototype.drawCircos = function() {
         } );
     }
 
-	// Give diagramsContainer a minimum height
-	$diagramContainer.css( 'min-height', $diagramContainerContainer.height() );
 };
 
 function addViolin(svg, results, range, width, domain, resolution, interpolation, imposeMax, log) {
