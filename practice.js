@@ -77,7 +77,6 @@ function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 }
 
 var selectedSpecies = 'anoph',
-	colorExpressionClusters = true,
 	bigDiagramExists = false;
 
 var optionsDict = {
@@ -129,17 +128,6 @@ $.when( optionsPromise1 ).done( function( v1 ) {
 
 			selectedSpecies = species;
 			showOptions( selectedSpecies );
-		} );
-
-	$( '.color-radio' )
-		.on( 'change', function() {
-			var type = $( '.color-radio:checked' ).val();
-
-			if ( type === 'expression' ) {
-				colorExpressionClusters = true;
-			} else {
-				colorExpressionClusters = false;
-			}
 		} );
 
 });
