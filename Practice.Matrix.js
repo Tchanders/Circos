@@ -24,10 +24,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 		// Don't run if another diagram is already maximised
 		if ( !bigDiagramExists ) {
-			$( '.diagrams-container' ).append( $popupContainer );
+			$( '.main-container' ).append( $popupContainer );
 			$diagramContainerBig.append( $( this ).parent() );
-            
-            $('.tooltip').css("opacity", 1);
 
 			bigDiagramExists = true;
 			$( '.expand-button' ).css( 'pointer-events', 'none' );
@@ -43,11 +41,11 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 		$popupContainer.detach();
 		$diagramContainer.append( $( this ).parent() );
-        
+
         // Keep the non-selected groups their normal color
         svg.selectAll(".group path")
           .style("stroke", function(d) { return colorGroup(d.index); });
-        
+
         $('.tooltip').css("opacity", 0);
 
 		bigDiagramExists = false;
@@ -95,9 +93,8 @@ Practice.Matrix.prototype.drawCircos = function() {
 	$diagramContainer.append( $svgContainer );
 	$diagramContainerContainer.append( $diagramContainer );
     $graphContainer.append( $diagramContainerBig );
-    $infoContainer.append( $infoTitle );
     $infoInnerContainer.append( $infoInnerContainerText);
-    $infoContainer.append( $infoInnerContainer );
+    $infoContainer.append( $infoTitle, $infoInnerContainer );
     $popupContainer.append( $graphContainer, $infoContainer );
 	$( '.diagrams-container' ).append( $diagramContainerContainer );
 
@@ -106,21 +103,12 @@ Practice.Matrix.prototype.drawCircos = function() {
 
 	var colorGroup = function( x ) {
 
-		if ( colorExpressionClusters ) {
-			// Clusters with lower indices are black
-			if ( x < that.numOrthologyClusters ) {
-	    		return "#000000";
-	    	} else {
-	    		return fill( x - that.numOrthologyClusters );
-	    	}
-		} else {
-			// Clusters with higher indices are black
-			if ( x < that.numOrthologyClusters ) {
-	    		return fill( x );
-	    	} else {
-	    		return "#000000";
-	    	}
-		}
+		// Clusters with lower indices are black
+		if ( x < that.numOrthologyClusters ) {
+    		return "#000000";
+    	} else {
+    		return fill( x - that.numOrthologyClusters );
+    	}
 
 	};
 
@@ -144,13 +132,9 @@ Practice.Matrix.prototype.drawCircos = function() {
 			// Chords with over-representation
 			return "#FFCC14";
 		}
-		if ( colorExpressionClusters ) {
-			// Color the chords the same as the expression clusters
-			x = Math.max( d.target.index, d.source.index ) - that.numOrthologyClusters;
-		} else {
-			// Color the chords the same as the orthology clusters
-			x = Math.min( d.target.index, d.source.index );
-		}
+
+		// Color the chords the same as the expression clusters
+		x = Math.max( d.target.index, d.source.index ) - that.numOrthologyClusters;
 		return fill( x );
 
 	};
@@ -198,7 +182,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 	    .on("mouseover", fade(0))
 	    .on("mouseout", fade(function(d) { return getChordOpacity(d); }))
         .on("mousedown", function(a) {
-            if ( $($diagramContainerBig).children().length > 0 ) {
+            if ( $diagramContainerBig.children().length > 0 ) {
                 getFacets(a);
             }
         });
@@ -269,10 +253,10 @@ Practice.Matrix.prototype.drawCircos = function() {
             ids = that.expressionClusters[exprIndex].member_ids;
             clusterId = analysis_id + '_' + ('000' + exprIndex.toString() ).slice(-3);
         }
-            
+
         // Construct the request
         var promise1, promise2;
-        
+
         if ( clusterIndex + 1 <= orthoLen ) {
             promise1 = getFacetData( 'member_ids',
                                      'og_id',
@@ -288,7 +272,7 @@ Practice.Matrix.prototype.drawCircos = function() {
                                      'gene_id',
                                      'analysis_id:' + analysis_id)
         }
-        
+
         $.when( promise1, promise2 ).done( function( v1i, v2i ) {
             /* The response is an array with three elements:
              *   [0]: The actual response from solr.
@@ -308,7 +292,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             }
         });
     }
-    
+
     function getFacetData(from, to, initialParameter, filter) {
         var query = '{!join from=' + from + ' to=' + to + '} ' + initialParameter,
             data = {
@@ -316,7 +300,7 @@ Practice.Matrix.prototype.drawCircos = function() {
                 'wt'	: 'json',
                 'indent': 'true',
                 'rows' 	: '20000'};
-        
+
         if ( initialParameter.indexOf('expr') > -1 ) {
             data['rows'] = 1;
             data['json.facet'] =  "{" +
@@ -348,7 +332,7 @@ Practice.Matrix.prototype.drawCircos = function() {
                 'univ: {range : {field:frac_species_f, start:0, end:1, gap:0.033}}' +
             "}";
         }
-        
+
         return $.ajax({
             url: 'http://localhost:8983/solr/circos/query',
             dataType: 'jsonp',
@@ -364,12 +348,12 @@ Practice.Matrix.prototype.drawCircos = function() {
             expressionValues = [],
             minYaxisValue = +Infinity,
             maxYaxisValue = -Infinity;
-        
+
         $infoInnerContainer.empty()
-        
+
         for ( var i = 0, ilen = clusters.length; i < ilen; i++ ) {
             expressionValues.push([]);
-            
+
             var conditionIds = [];
             if ( i === 1 ) {
                 // Construct an array with all the condition ids so that they can
@@ -378,8 +362,8 @@ Practice.Matrix.prototype.drawCircos = function() {
                     conditionIds.push(expressionValues[0][k].conditionId);
                 }
             }
-            
-            var nOfSkippedConditions = 0;            
+
+            var nOfSkippedConditions = 0;
             for ( var j = 0, jlen = clusters[i].length; j < jlen; j++ ) {
                 var condition = j + 1 - nOfSkippedConditions,
                     conditionId = clusters[i][j].val,
@@ -387,7 +371,7 @@ Practice.Matrix.prototype.drawCircos = function() {
                     variance = ((clusters[i][j].sumsq / clusters[i][j].count) - Math.pow(clusters[i][j].avg, 2)),
                     minConfidenceInterval = mean - 2 * Math.sqrt(variance),
                     maxConfidenceInterval = mean + 2 * Math.sqrt(variance);
-                
+
                 if ( (i === 1 && $.inArray(conditionId, conditionIds) > -1) ||
                      ( i === 0 ) ) {
                     expressionValues[i].push({
@@ -411,14 +395,14 @@ Practice.Matrix.prototype.drawCircos = function() {
                 }
             }
         }
-        
+
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
-        
+
         // Set the dimensions of the canvas / graph
-        var margin = {top: 30, bottom: 30, left: 30, right: 20},
+        var margin = {top: 0, bottom: 30, left: 30, right: 20},
             // The line plot indide info panel gets its dimensions from graphContainer
             // maybe TODO ?
-            width = $graphContainer.width() - margin.left - margin.right,
+            width = $infoContainer.width() - margin.left - margin.right,
             height = $graphContainer.height() - margin.top - margin.bottom;
 
         // Set the ranges
@@ -443,16 +427,16 @@ Practice.Matrix.prototype.drawCircos = function() {
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
             .append("g")
-                .attr("transform", 
+                .attr("transform",
                       "translate(" + margin.left + "," + margin.top + ")");
 
         // Get the data
         var data = expressionValues[0];
-        
+
         // Scale the range of the data
         x.domain(d3.extent(data, function(d) { return d.condition; }));
         y.domain(d3.extent([minYaxisValue, maxYaxisValue], function(d) { return d; }));
-        
+
         // First draw the red lines for the genome confidence interval in the background;
         data = expressionValues[1];
         infoPanelsvg.selectAll("line")
@@ -464,9 +448,9 @@ Practice.Matrix.prototype.drawCircos = function() {
             .attr("x1", function (d) { return x(d.condition); })
             .attr("x2", function (d) { return x(d.condition); })
             .attr("stroke", "red");
-        
+
         data = expressionValues[0];
-        
+
         infoPanelsvg.selectAll("dot")
             .data(data)
             .enter().append("svg:line")
@@ -478,7 +462,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             .attr("stroke", "grey")
             .attr("opacity", 0.8);
 
-        // Add the dots 
+        // Add the dots
         infoPanelsvg.selectAll("dot")
             .data(data)
             .enter()
@@ -511,7 +495,7 @@ Practice.Matrix.prototype.drawCircos = function() {
                     .duration(500)
                     .style("opacity", 0)
             });
-        
+
         // Add the X Axis
         infoPanelsvg.append("g")
             .attr("class", "x axis")
@@ -523,7 +507,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             .attr("class", "y axis")
             .call(yAxis);
     }
-    
+
     // Display information about the cluster that you are hovering over.
     function showInfoPanelOrtho(clusterBuckets, genomeBuckets) {
         // TODO Test if we are in the enlarged display
@@ -531,10 +515,10 @@ Practice.Matrix.prototype.drawCircos = function() {
             clusters = [clusterBuckets, genomeBuckets],
             orthologyValues = [],
             ogClusterStats = [];
-        
+
         for ( var i = 0, ilen = clusters.length; i < ilen; i++ ) {
 //            orthologyValues.push([]);
-            
+
             orthologyValues[i] = {
                 'evorHist': clusters[i].evor.buckets,
                 'evorMean': clusters[i].evorMean,
@@ -547,18 +531,18 @@ Practice.Matrix.prototype.drawCircos = function() {
                 'univPerc': clusters[i].univPerc
             };
         };
-        
+
         console.log(orthologyValues)
-        
+
         $infoInnerContainer.empty()
 
         /* From vector-violin.js@ninjaviewer (mostly) */
-        
+
         // Set the dimensions of the canvas / graph
         var margin = {top: 30, bottom: 30, left: 30, right: 20},
             width = $graphContainer.width() - margin.left - margin.right,
             height = $graphContainer.height() - margin.top - margin.bottom;
-        
+
         console.log('dimensions', width, height, margin)
 
         var boxSpacing = 10;
@@ -568,7 +552,7 @@ Practice.Matrix.prototype.drawCircos = function() {
         var resolution = 20;
         var d3ObjId = "violin";
         var interpolation = 'basis';
-        
+
         var evoRateDiv = d3.select($infoInnerContainer[0])
             .append("div")
 //                .attr("class", "evo-rate-div")
@@ -604,7 +588,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             .attr("y", height - margin.bottom/2)
             .style("text-anchor", "middle")
             .text("Cluster");
-        
+
         // add the global chart
         var g = svg.append("g").attr("transform", "translate(" + (0 * (boxWidth) + margin.left) + ",0)");
 
@@ -621,7 +605,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             .attr('class', 'axis')
             .attr("transform", "translate(" + margin.left + ",0)")
             .call(yAxisEvor);
-            
+
         // Duplicability
         var duplDiv = d3.select($infoInnerContainer[0])
             .append("div")
@@ -678,7 +662,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             .attr('class', 'axis')
             .attr("transform", "translate(" + (margin.left) + ",0)")
             .call(yAxisDupl);
-//        
+
 //        // Universality
         var univDiv = d3.select($infoInnerContainer[0])
             .append("div")
@@ -735,14 +719,14 @@ Practice.Matrix.prototype.drawCircos = function() {
             .attr("transform", "translate(" + margin.left + ",0)")
             .call(yAxisUniv);
     }
-    
+
     function getConditionInfo(conditionId) {
         var data = {
             'q'     : 'id:' + conditionId,
             'wt'    : 'json',
             'indent': 'true'
         }
-        
+
         return $.ajax({
             url: 'http://localhost:8983/solr/circos/query',
             method: "POST",
@@ -751,7 +735,7 @@ Practice.Matrix.prototype.drawCircos = function() {
             data: data
         } );
     }
-    
+
 	// Give diagramsContainer a minimum height
 	$diagramContainer.css( 'min-height', $diagramContainerContainer.height() );
 };
