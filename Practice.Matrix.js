@@ -540,7 +540,7 @@ Practice.Matrix.prototype.drawCircos = function() {
 
         // Set the dimensions of the canvas / graph
         var margin = {top: 30, bottom: 30, left: 30, right: 20},
-            width = $graphContainer.width() - margin.left - margin.right,
+            width = $infoContainer.width() - margin.left - margin.right,
             height = $graphContainer.height() - margin.top - margin.bottom;
 
         console.log('dimensions', width, height, margin)
