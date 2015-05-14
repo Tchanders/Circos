@@ -74,7 +74,7 @@ function getMatrix( inputData, callback ) {
 				} );
 
 				m = new Practice.Matrix( expressionClusters, orthologyClusters, geneToGroup );
-                
+
 				allResults = {
 					'pValue': m.pValue,
 					'circosMatrix': m.circosMatrix,

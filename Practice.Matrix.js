@@ -3,7 +3,7 @@
  *
  * @class
  */
-Practice.Matrix = function( species ) {
+Practice.Matrix = function( v, species ) {
 
 	switch ( species ) {
 		case 'anoph':
@@ -12,6 +12,13 @@ Practice.Matrix = function( species ) {
 		case 'plasmo':
 			this.species = 'Plasmodium';
 	}
+
+    this.circosMatrix = v.circosMatrix;
+    this.numOrthologyClusters = v.numOrthologyClusters;
+    this.numExpressionClusters = v.numExpressionClusters;
+    this.pValuesOfChords = v.pValuesOfChords;
+    this.expressionClusters = v.expressionClusters;
+    this.orthologyClusters = v.orthologyClusters;
 
 };
 

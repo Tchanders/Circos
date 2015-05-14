@@ -12,7 +12,7 @@ var logFactorial = function( n ) {
 	if ( n === 0 ) {
 		return 0;
 	}
-	x = n * Math.log( n ) - n + 0.5 * Math.log( 2 * Math.PI * n );
+	x = ( n + 0.5 ) * Math.log( n ) - n + 0.5 * Math.log( 2 * Math.PI );
 
 	console.log( 'log of ' + n + ' factorial is:' );
 	console.log( x );

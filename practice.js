@@ -64,13 +64,7 @@ function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 
 	// TODO pass in the object v to Practice.Matrix constructor
 	$.when( promise ).done( function( v ) {
-		m = new Practice.Matrix( selectedSpecies );
-		m.circosMatrix = v.circosMatrix;
-		m.numOrthologyClusters = v.numOrthologyClusters,
-		m.numExpressionClusters = v.numExpressionClusters,
-		m.pValuesOfChords = v.pValuesOfChords;
-        m.expressionClusters = v.expressionClusters;
-        m.orthologyClusters = v.orthologyClusters;
+		m = new Practice.Matrix( v, selectedSpecies );
 		m.drawCircos();
 	} );
 
