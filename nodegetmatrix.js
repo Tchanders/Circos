@@ -50,8 +50,8 @@ exports.getMatrix = function( field, value, filter, doChordAnalysis ) {
 			m = new Practice.Matrix( expressionClusters, orthologyClusters, geneToOG );
 			// m.makeElements();
 			// m.makeElementMatrix();
-			m.makeNumMatrix();
-			matrix = m.numMatrix;
+			m.populateNumberMatrix();
+			matrix = m.numberMatrix;
 			p = ind.calculate( matrix );
 
 			// Parse value
