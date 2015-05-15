@@ -62,9 +62,9 @@ function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 		}
 	} );
 
-	// TODO pass in the object v to Practice.Matrix constructor
+	// TODO pass in the object v to ClusterAnalysis.Diagram constructor
 	$.when( promise ).done( function( v ) {
-		m = new Practice.Matrix( v, selectedSpecies );
+		m = new ClusterAnalysis.Diagram( v, selectedSpecies );
 		m.drawCircos();
 	} );
 

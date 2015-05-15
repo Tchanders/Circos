@@ -1,5 +1,5 @@
 /*
- * The matrix of information about the clusters
+ * The data needed to make a diagram for each cluster analysis
  *
  * @class
  *

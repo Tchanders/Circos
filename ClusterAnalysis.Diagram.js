@@ -25,7 +25,7 @@ Practice.Matrix = function( v, species ) {
 /*
  * Draw the circos diagram
  */
-Practice.Matrix.prototype.drawCircos = function() {
+ClusterAnalysis.Diagram.prototype.drawCircos = function() {
 
 	var expand = function() {
 
