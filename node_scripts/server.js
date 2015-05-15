@@ -6,7 +6,7 @@ var url = require( 'url' );
 var geneToGroup = require( '../static_files/geneToOG.json' );
 
 require( './init' );
-require( './Practice.NodeMatrix' );
+require( './ClusterAnalysis.DiagramData' );
 
 var server = http.createServer( function( request, response ) {
 	//input from querystring
@@ -73,7 +73,7 @@ function getMatrix( inputData, callback ) {
 					}
 				} );
 
-				m = new Practice.Matrix( expressionClusters, orthologyClusters, geneToGroup );
+				m = new ClusterAnalysis.DiagramData( expressionClusters, orthologyClusters, geneToGroup );
 
 				allResults = {
 					'pValue': m.pValue,

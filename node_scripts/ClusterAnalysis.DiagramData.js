@@ -10,9 +10,9 @@
  *                                 	    	* member_ids
  * @param {Object} geneToGroup			Mapping of each gene to an orthologous group (OG)
  */
-Practice.Matrix = function( expressionClusters, orthologyClusters, geneToGroup ) {
+ClusterAnalysis.DiagramData = function( expressionClusters, orthologyClusters, geneToGroup ) {
 
-	var ind = require( './nodechisquaredindependence' );
+	var ind = require( './chiSquaredIndependence' );
 
 	this.expressionClusters = expressionClusters;
 	this.orthologyClusters = orthologyClusters;
@@ -40,7 +40,7 @@ Practice.Matrix = function( expressionClusters, orthologyClusters, geneToGroup )
  * X X X
  *
  */
-Practice.Matrix.prototype.populateNumberMatrix = function() {
+ClusterAnalysis.DiagramData.prototype.populateNumberMatrix = function() {
 
 	var i, j,
 		groupIDs, groupID,
@@ -98,7 +98,7 @@ Practice.Matrix.prototype.populateNumberMatrix = function() {
  * X X 0 0 0
  *
  */
-Practice.Matrix.prototype.populateCircosMatrix = function() {
+ClusterAnalysis.DiagramData.prototype.populateCircosMatrix = function() {
 
 	var i, row, col,
 		size = this.numOrthologyClusters + this.numExpressionClusters;

@@ -1,10 +1,8 @@
 var request = require( 'request' );
-var ind = require( './nodechisquaredindependence' );
 var geneToOG = require( './geneToOG.json' );
 
 require( './init' );
-require( './Practice.NodeMatrix' );
-require( './Practice.Element' );
+require( './ClusterAnalysis.DiagramData' );
 
 var exports = module.exports = {};
 
@@ -47,12 +45,7 @@ exports.getMatrix = function( field, value, filter, doChordAnalysis ) {
 				}
 			} );
 
-			m = new Practice.Matrix( expressionClusters, orthologyClusters, geneToOG );
-			// m.makeElements();
-			// m.makeElementMatrix();
-			m.populateNumberMatrix();
-			matrix = m.numberMatrix;
-			p = ind.calculate( matrix );
+			m = new ClusterAnalysis.DiagramData( expressionClusters, orthologyClusters, geneToOG );
 
 			// Parse value
 			var parsedValue = value.split( ' OR ' );
@@ -63,10 +56,6 @@ exports.getMatrix = function( field, value, filter, doChordAnalysis ) {
 			allResults = {
 				'graph_id': numbersString,
 				'graph_pvalue': p
-			}
-
-			if ( doChordAnalysis ) {
-				allResults.chord_pvalues = ind.chordAnalysis( matrix );
 			}
 
 			console.log( JSON.stringify( allResults ) );
