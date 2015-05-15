@@ -22,12 +22,14 @@ ClusterAnalysis.Diagram = function( v, species ) {
     this.expressionClusters = v.expressionClusters;
     this.orthologyClusters = v.orthologyClusters;
 
+    this.drawDiagram();
+
 };
 
 /*
  * Draw the circos diagram
  */
-ClusterAnalysis.Diagram.prototype.drawCircos = function() {
+ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
     /*
      * Functions for the small buttons
@@ -151,6 +153,10 @@ ClusterAnalysis.Diagram.prototype.drawCircos = function() {
     $infoInnerContainer.append( $infoInnerContainerText);
 
     $svgContainer.append( $title, $minimiseButton, $maximiseButton, $closeButton, $svgInnerContainer );
+
+    /*
+     * Draw the circos diagram and append to svgInnerContainer
+     */
 
     // For accessing this in the coloring functions
     var that = this;
