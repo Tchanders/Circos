@@ -3,10 +3,10 @@ var request = require( 'request' );
 var url = require( 'url' );
 
 // Pre-made dictionary of genes to orthologous groups
-var geneToGroup = require( './geneToOG.json' );
+var geneToGroup = require( '../static_files/geneToOG.json' );
 
 require( './init' );
-require( './Practice.NodeMatrix' );
+require( './ClusterAnalysis.DiagramData' );
 
 var server = http.createServer( function( request, response ) {
 	//input from querystring
@@ -73,8 +73,8 @@ function getMatrix( inputData, callback ) {
 					}
 				} );
 
-				m = new Practice.Matrix( expressionClusters, orthologyClusters, geneToGroup );
-                
+				m = new ClusterAnalysis.DiagramData( expressionClusters, orthologyClusters, geneToGroup );
+
 				allResults = {
 					'pValue': m.pValue,
 					'circosMatrix': m.circosMatrix,

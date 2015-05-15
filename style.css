@@ -139,8 +139,8 @@
 	margin-right: 20px;
 }
 
-.expand-button, .minimise-button {
-	/*So the expand button can lie on top of the minimise button*/
+.maximise-button, .minimise-button {
+	/*So the maximise button can lie on top of the minimise button*/
 	position: absolute;
 	left: 20px;
 }

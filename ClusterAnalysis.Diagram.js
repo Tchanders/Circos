@@ -1,10 +1,11 @@
 /*
- * The matrix of information about the clusters
+ * The diagram that represents a cluster analysis
  *
  * @class
  */
-Practice.Matrix = function( species ) {
+ClusterAnalysis.Diagram = function( v, species ) {
 
+    // Labels
 	switch ( species ) {
 		case 'anoph':
 			this.species = 'Anopheles';
@@ -13,92 +14,143 @@ Practice.Matrix = function( species ) {
 			this.species = 'Plasmodium';
 	}
 
+    // Diagram data
+    this.circosMatrix = v.circosMatrix;
+    this.numOrthologyClusters = v.numOrthologyClusters;
+    this.numExpressionClusters = v.numExpressionClusters;
+    this.pValuesOfChords = v.pValuesOfChords;
+    this.expressionClusters = v.expressionClusters;
+    this.orthologyClusters = v.orthologyClusters;
+
 };
 
 /*
  * Draw the circos diagram
  */
-Practice.Matrix.prototype.drawCircos = function() {
+ClusterAnalysis.Diagram.prototype.drawCircos = function() {
 
-	var expand = function() {
+    /*
+     * Functions for the small buttons
+     */
 
-		// Don't run if another diagram is already maximised
-		if ( !bigDiagramExists ) {
-			$( '.main-container' ).append( $popupContainer );
-			$diagramContainerBig.append( $( this ).parent() );
+    var onMaximiseClick = function() {
 
-			bigDiagramExists = true;
-			$( '.expand-button' ).css( 'pointer-events', 'none' );
+        // Don't run if another diagram is already maximised
+        if ( !bigDiagramExists ) {
 
-			$minimiseButton.show();
-			$expandButton.hide();
-			$closeButton.hide();
-		}
+            bigDiagramExists = true;
+            $( '.maximise-button' ).css( 'pointer-events', 'none' );
 
-	};
+            // Display the popup container and append svgContainer to diagramContainerBig
+            $( '.main-container' ).append( $popupContainer );
+            $diagramContainerBig.append( $( this ).parent() );
 
-	var minimise = function() {
+            // Display minimise button only
+            $minimiseButton.show();
+            $maximiseButton.hide();
+            $closeButton.hide();
 
-		$popupContainer.detach();
-		$diagramContainer.append( $( this ).parent() );
+        }
 
-        // Keep the non-selected groups their normal color
+    };
+
+    var onMinimiseClick = function() {
+
+        bigDiagramExists = false;
+        $( '.maximise-button' ).css( 'pointer-events', '' );
+
+        // Remove the popup conatainer and append svgContainer to diagramContainer
+        $popupContainer.detach();
+        $diagramContainer.append( $( this ).parent() );
+
+        // Unhighlight any selected clusters
         svg.selectAll(".group path")
           .style("stroke", function(d) { return colorGroup(d.index); });
 
+        // Hide any tooltips that were displayed in the popup container
         $('.tooltip').css("opacity", 0);
 
-		bigDiagramExists = false;
-		$( '.expand-button' ).css( 'pointer-events', '' );
+        // Display maximise and close buttons only
+        $minimiseButton.hide();
+        $maximiseButton.show();
+        $closeButton.show();
 
-		$minimiseButton.hide();
-		$expandButton.show();
-		$closeButton.show();
+    };
 
-	};
+    /* Initialise all the containers and labels for this diagram
+     *
+     * Small diagram tree:
+     *  $( '.main-container' )
+     *      $( '.diagrams-container' )
+     *          diagramContainerContainer
+     *              diagramContainer
+     *                  svgContainer (SEE BELOW)
+     */
+    var $diagramContainerContainer = $( '<div>' ).addClass( 'diagram-container-container' );
+    var $diagramContainer = $( '<div>' ).addClass( 'diagram-container' );
 
-	var $popupContainer = $( '<div>' ).addClass( 'popup-container' ),
-	    $graphContainer = $( '<div>' ).addClass( 'graph-container' ),
-	    $infoContainer = $( '<div>' ).addClass( 'info-container' ),
-        $diagramContainerContainer = $( '<div>' ).addClass( 'diagram-container-container' ),
-		$diagramContainer = $( '<div>' ).addClass( 'diagram-container' ),
-		$diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' ),
-		$svgContainer = $( '<div>' ).addClass( 'svg-container' ),
-		$svgInnerContainer = $( '<div>' ).addClass( 'svg-inner-container' ),
-		$title = $( '<p>' ).addClass( 'diagram-title' ).text( this.species ),
-		$infoTitle = $( '<p>' ).addClass( 'info-title' ).text( "Cluster Information" ),
-        $infoInnerContainer = $( '<div>' ).addClass('info-inner-container').css("width", "100%"),
-        $infoInnerContainerText = $( '<p>' ).text("Click on a cluster to display information about it.")
+    /* Big diagram tree:
+     *  $( '.main-container' )
+     *      popupContainer
+     *          graphContainer
+     *              diagramContainerBig
+     *                  svgContainer (SEE BELOW)
+     *          infoContainer
+     *              infoTitle
+     *              infoInnerContainer
+     *                  infoInnerContainerText
+     */
+    var $popupContainer = $( '<div>' ).addClass( 'popup-container' );
+    var $graphContainer = $( '<div>' ).addClass( 'graph-container' );
+    var $diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' );
+
+    var $infoContainer = $( '<div>' ).addClass( 'info-container' );
+    var $infoTitle = $( '<p>' ).addClass( 'info-title' ).text( "Cluster Information" );
+    var $infoInnerContainer = $( '<div>' ).addClass('info-inner-container').css("width", "100%");
+    var $infoInnerContainerText = $( '<p>' )
+            .text("Click on a cluster to display information about it.")
             .css("text-align", "center")
-            .css("width", "100%"),
+            .css("width", "100%");
 
-		$closeButton = $( '<div>' )
-			.addClass( 'button small-button close-button' )
-			.text( '×' )
-			.on( 'click', function() {
-				$diagramContainerContainer.remove();
-				$diagramContainerBig.remove();
-			} ),
-
-		$expandButton = $( '<div>' )
-			.addClass( 'button small-button expand-button' )
-			.text( '+' )
-			.on( 'click', expand ),
-
-        $minimiseButton = $( '<div>' )
+    /* Both trees:
+    *  svgContainer
+    *      svgInnerContainer
+    *          svg (SEE BELOW)
+    *      title
+    *      buttons
+    */
+    var $svgContainer = $( '<div>' ).addClass( 'svg-container' );
+    var $svgInnerContainer = $( '<div>' ).addClass( 'svg-inner-container' );
+    var $title = $( '<p>' ).addClass( 'diagram-title' ).text( this.species );
+    var $closeButton = $( '<div>' )
+            .addClass( 'button small-button close-button' )
+            .text( '×' )
+            .on( 'click', function() {
+                $diagramContainerContainer.remove();
+            } );
+    var $maximiseButton = $( '<div>' )
+            .addClass( 'button small-button maximise-button' )
+            .text( '+' )
+            .on( 'click', onMaximiseClick );
+    var $minimiseButton = $( '<div>' )
             .addClass( 'button small-button minimise-button' )
             .text( '−' )
-            .on( 'click', minimise )
+            .on( 'click', onMinimiseClick )
             .hide();
 
-    $svgContainer.append( $title, $minimiseButton, $expandButton, $closeButton, $svgInnerContainer );
-    $diagramContainer.append( $svgContainer );
-    $diagramContainerContainer.append( $diagramContainer );
-    $graphContainer.append( $diagramContainerBig );
-    $infoInnerContainer.append( $infoInnerContainerText);
-    $infoContainer.append( $infoTitle, $infoInnerContainer );
-    $popupContainer.append( $graphContainer, $infoContainer );
+    /*
+     *  Append everything as outlined above
+     */
     $( '.diagrams-container' ).append( $diagramContainerContainer );
+    $diagramContainerContainer.append( $diagramContainer );
+    $diagramContainer.append( $svgContainer );
+
+    $popupContainer.append( $graphContainer, $infoContainer );
+    $graphContainer.append( $diagramContainerBig );
+    $infoContainer.append( $infoTitle, $infoInnerContainer );
+    $infoInnerContainer.append( $infoInnerContainerText);
+
+    $svgContainer.append( $title, $minimiseButton, $maximiseButton, $closeButton, $svgInnerContainer );
 
     // For accessing this in the coloring functions
     var that = this;
