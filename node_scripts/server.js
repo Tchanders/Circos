@@ -3,7 +3,7 @@ var request = require( 'request' );
 var url = require( 'url' );
 
 // Pre-made dictionary of genes to orthologous groups
-var geneToGroup = require( './geneToOG.json' );
+var geneToGroup = require( '../static_files/geneToOG.json' );
 
 require( './init' );
 require( './Practice.NodeMatrix' );
