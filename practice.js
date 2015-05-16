@@ -58,7 +58,8 @@ function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 				+ ' OR '
 				+ chosenOrthoOption
 				+ ')',
-			filter: 'analysis_id,member_ids'
+			filter: 'analysis_id,member_ids',
+			mode: 'draw'
 		}
 	} );
 

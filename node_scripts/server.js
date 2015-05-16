@@ -1,6 +1,7 @@
 var http = require( 'http' );
 var request = require( 'request' );
 var url = require( 'url' );
+var rstats = require( 'rstats' );
 
 // Pre-made dictionary of genes to orthologous groups
 var geneToGroup = require( '../static_files/geneToOG.json' );
@@ -19,7 +20,7 @@ var server = http.createServer( function( request, response ) {
 	}
 
 	//call async function, pass in callback that runs when complete and takes result as 1st arg
-	getDiagramData( inputData, function( result ) {
+	getData( inputData, function( result ) {
 		// this is the callback, 1st arg result
 		// here result will be matrix (see below)
 	 	response.writeHead( 200, {"Content-Type": "application/json"} );
@@ -29,7 +30,13 @@ var server = http.createServer( function( request, response ) {
 
 server.listen( 8081 );
 
-function getDiagramData( inputData, callback ) {
+function getData( inputData, callback ) {
+	handlers[inputData.mode]( inputData, callback );
+}
+
+var handlers = {};
+
+handlers.draw = function( inputData, callback ) {
 	// Make data part of options
 	var data = {
 		'q': 'analysis_id:' + inputData.value,
@@ -92,4 +99,7 @@ function getDiagramData( inputData, callback ) {
 		}
 
 	);
-}
+};
+
+handlers.GO = function( inputData, callback ) {
+};
