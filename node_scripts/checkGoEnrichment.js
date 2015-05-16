@@ -1,4 +1,5 @@
 var request = require( 'request' );
+var rstats = require( 'rstats' );
 // var go = require( './hypergeometric' );
 
 var facet = "{" +
@@ -33,7 +34,7 @@ request( options, function( error, response, body ) {
 		console.log( error );
 	} else {
 
-		// N number of back + white balls in the jar
+		// N number of black + white balls in the jar
 		// 		total number GO terms for Anopheles gambiae genes in the analyses
 		// n number of balls picked from the jar
 		// 		number of GO terms in cluster of interest
@@ -41,12 +42,12 @@ request( options, function( error, response, body ) {
 		// 		number of GO term of interest for Anopheles gambiae genes in the analyses
 		// k number of white balls picked out
 		// 		number of GO term of interest in cluster of interest
-		var N, n, K, k;
+		var N, n, K, k, term;
 
 		// do go enrichment analysis
 		var buckets = body.facets.conditions.buckets;
 		var bucket = buckets[0];
-		console.log( 'first bucket:' );
+		console.log( 'GO term of interest / white:' );
 		console.log( bucket );
 
 		function calculateCountSum( buckets ) {
@@ -56,16 +57,16 @@ request( options, function( error, response, body ) {
 			return sum;
 		}
 		N = calculateCountSum( buckets );
-		console.log( 'N (total of counts of all buckets):' );
+		console.log( 'N (no. GO terms for Anopheles / no. balls in the jar):' );
 		console.log( N );
 
 		// First GO term only
 		K = bucket.count;
-		geneK = bucket.val;
-		console.log( 'K (count of first bucket):' );
+		term = bucket.val;
+		console.log( 'K (no. GO term of interest for anopheles / no. white balls in the jar):' );
 		console.log( K );
-		console.log( 'name of first bucket:' );
-		console.log( geneK );
+		console.log( 'GO term of interest / colour of interest:' );
+		console.log( term );
 
 		data.q = '{!join from=member_ids to=id} id:anoph_expr_cluster_25_002';
 
@@ -83,14 +84,14 @@ request( options, function( error, response, body ) {
 					return sum;
 				}
 				n = calculateCountSum( body.facets.conditions.buckets );
-				console.log( 'n (total of counts of buckets in this cluster):' );
+				console.log( 'n (no. GO terms in cluster / no. balls picked out):' );
 				console.log( n );
 
 				function findCountTermOfInterest( buckets ) {
 					var count;
 					buckets.some( function( b ) {
-						if ( b.val === geneK ) {
-							console.log( 'bucket with same name as first bucket' );
+						if ( b.val === term ) {
+							console.log( 'bucket for GO term of interest' );
 							console.log( b );
 							count = b.count;
 							return true;
@@ -102,8 +103,19 @@ request( options, function( error, response, body ) {
 
 				// First GO term only
 				k = findCountTermOfInterest( body.facets.conditions.buckets );
-				console.log( 'k (count of terms with same name as first bucket):' );
+				console.log( 'k (no. GO term of interest in cluster / no. white balls picked):' );
 				console.log( k );
+
+				var R = new rstats.session();
+
+				R.assign('x', 2);
+				R.assign('m', 23);
+				R.assign('n', 47);
+				R.assign('k', 12);
+
+				// console.log('R command:', "dhyper(x=, m=, n=, k=)");
+				var hyperGeom = R.parseEval("dhyper(x, m, n, k)");
+				console.log(hyperGeom);
 			}
 		} );
 
