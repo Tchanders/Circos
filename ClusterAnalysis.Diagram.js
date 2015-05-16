@@ -340,7 +340,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
              *   [2]: Info from Ajax. Useless.
              * So we always have to the 0th element of the response.
              */
-//            console.log(v1i, v2i)
+           console.log(v1i, v2i)
             if ( clusterIndex + 1 <= orthoLen ) {
                 var clusterBuckets = v1i[0].facets,
                     genomeBuckets = v2i[0].facets;

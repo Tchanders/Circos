@@ -19,7 +19,7 @@ var server = http.createServer( function( request, response ) {
 	}
 
 	//call async function, pass in callback that runs when complete and takes result as 1st arg
-	getMatrix( inputData, function( result ) {
+	getDiagramData( inputData, function( result ) {
 		// this is the callback, 1st arg result
 		// here result will be matrix (see below)
 	 	response.writeHead( 200, {"Content-Type": "application/json"} );
@@ -29,7 +29,7 @@ var server = http.createServer( function( request, response ) {
 
 server.listen( 8081 );
 
-function getMatrix( inputData, callback ) {
+function getDiagramData( inputData, callback ) {
 	// Make data part of options
 	var data = {
 		'q': 'analysis_id:' + inputData.value,
