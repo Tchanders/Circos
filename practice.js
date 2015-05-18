@@ -58,11 +58,11 @@ function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 				+ ' OR '
 				+ chosenOrthoOption
 				+ ')',
-			filter: 'analysis_id,member_ids'
+			filter: 'analysis_id,member_ids',
+			mode: 'draw'
 		}
 	} );
 
-	// TODO pass in the object v to ClusterAnalysis.Diagram constructor
 	$.when( promise ).done( function( v ) {
 		m = new ClusterAnalysis.Diagram( v, selectedSpecies );
 	} );

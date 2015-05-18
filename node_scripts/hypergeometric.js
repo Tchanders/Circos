@@ -1,4 +1,4 @@
-var Big = require( './lib/js/big.js-master/big' );
+var Big = require( '../lib/js/big.js-master/big' );
 
 // Perform GO term enrichment analysis
 
@@ -14,8 +14,8 @@ var logFactorial = function( n ) {
 	}
 	x = ( n + 0.5 ) * Math.log( n ) - n + 0.5 * Math.log( 2 * Math.PI );
 
-	console.log( 'log of ' + n + ' factorial is:' );
-	console.log( x );
+	// console.log( 'log of ' + n + ' factorial is:' );
+	// console.log( x );
 	return x;
 };
 
@@ -26,8 +26,8 @@ var logBinomial = function( n, r ) {
 	// i.e. log(nCr) = log(n!) - (log(r!) + log((n-r)!))
 	x = logFactorial( n ) - ( logFactorial( r ) + logFactorial( n - r ) );
 
-	console.log( 'log of ' + n + 'C' + r + ' is' );
-	console.log( x );
+	// console.log( 'log of ' + n + 'C' + r + ' is' );
+	// console.log( x );
 	return x;
 };
 
@@ -41,17 +41,17 @@ var logBinomial = function( n, r ) {
 module.exports.logHypergeometric = function( K, k, N, n ) {
 	// log(p(X = k)) = log(KCk) + log((N - K)C(n - k)) - log(NCn)
 	x = logBinomial( K, k ) + logBinomial( N - K, n - k ) - logBinomial( N, n );
-	console.log( 'log of hypergeometric is' );
-	console.log( x );
+	// console.log( 'log of hypergeometric is' );
+	// console.log( x );
 	y = Math.pow( Math.E, x )
-	console.log( 'hypergeometric is ');
-	console.log( y );
-	return x;
+	// console.log( 'hypergeometric is ');
+	// console.log( y );
+	return y;
 };
 
 module.exports.logBinomial = logBinomial;
 module.exports.logFactorial = logFactorial;
 
-module.exports.logHypergeometric( 10, 1, 10000, 5000 );
+// console.log( module.exports.logHypergeometric( 10, 1, 10000, 5000 ) );
 
 // var c = require( './nodeGoEnrichment' );
