@@ -1,7 +1,17 @@
 var request = require( 'request' );
 var rstats = require( 'rstats' );
-// var go = require( './hypergeometric' );
+var go = require( './hypergeometric' );
 
+// N number of black + white balls in the jar
+// 		total number GO terms for Anopheles gambiae genes in the analyses
+// n number of balls picked from the jar
+// 		number of GO terms in cluster of interest
+// K number of white balls in the jar
+// 		number of GO term of interest for Anopheles gambiae genes in the analyses
+// k number of white balls picked out
+// 		number of GO term of interest in cluster of interest
+
+// Make the facet part of data
 var facet = JSON.stringify( {
 	conditions: {
 		terms: {
@@ -11,7 +21,6 @@ var facet = JSON.stringify( {
 		}
 	}
 } );
-
 
 // Make the data part of the options
 var data = {
@@ -30,77 +39,53 @@ var options = {
 	qs: data
 };
 
+// Calculate N
 request( options, function( error, response, body ) {
 	if ( error ) {
 		console.log( error );
 	} else {
 
-		// N number of black + white balls in the jar
-		// 		total number GO terms for Anopheles gambiae genes in the analyses
-		// n number of balls picked from the jar
-		// 		number of GO terms in cluster of interest
-		// K number of white balls in the jar
-		// 		number of GO term of interest for Anopheles gambiae genes in the analyses
-		// k number of white balls picked out
-		// 		number of GO term of interest in cluster of interest
-		var N, n, K, k, term,
-			significantTerms = [];
-
+		var N, n, K, k, term;
+		var significantTerms = [];
 		var allBuckets = body.facets.conditions.buckets;
 		var numBuckets = body.facets.conditions.numBuckets;
+		console.log( numBuckets );
 
 		function calculateCountSum( buckets ) {
-			var sum = allBuckets.reduce( function( prev, curr ) {
+			var sum = buckets.reduce( function( prev, curr ) {
 				return prev + curr.count;
 			}, 0 );
 			return sum;
 		}
 		N = calculateCountSum( allBuckets );
-		// console.log( 'N (no. GO terms for Anopheles / no. balls in the jar):' );
-		// console.log( N );
+		// console.log( 'Total number of GO terms for Anopheles:', N );
 
-		data.q = '{!join from=member_ids to=id} id:anoph_expr_cluster_15_010';
-
+		// Calculate n
+		data.q = '{!join from=member_ids to=id} id:anoph_expr_cluster_25_000';
 		request( options, function( error, response, body ) {
 			if ( error ) {
 				console.log( error );
 			} else {
 
-				var R = new rstats.session();
+				//var R = new rstats.session();
 
-				var counter = 0;
+				var clusterBuckets = body.facets.conditions.buckets;
+				n = calculateCountSum( clusterBuckets );
+				// console.log( 'Number of GO terms in cluster:', n );
 
+				// Calculate each K and k
+				// Perform analysis for each term
 				allBuckets.forEach( function( bucket ) {
 
-					// console.log( 'GO term of interest / white:' );
-					// console.log( bucket );
-
-					// First GO term only
 					K = bucket.count;
 					term = bucket.val;
-					// console.log( 'K (no. GO term of interest for anopheles / no. white balls in the jar):' );
-					// console.log( K );
-					// console.log( 'GO term of interest / colour of interest:' );
-					// console.log( term );
-
-					var clusterBuckets = body.facets.conditions.buckets;
-
-					function calculateCountSum( buckets ) {
-						var sum = buckets.reduce( function( prev, curr ) {
-							return prev + curr.count;
-						}, 0 );
-						return sum;
-					}
-					n = calculateCountSum( clusterBuckets );
-					// console.log( 'n (no. GO terms in cluster / no. balls picked out):' );
-					// console.log( n );
+					// console.log( 'GO term of interest:', term );
+					// console.log( 'Total number of GO term of interest for Anopheles:', K );
 
 					function findCountTermOfInterest( buckets ) {
 						var count = 0;
 						buckets.some( function( b ) {
 							if ( b.val === term ) {
-								// console.log( 'bucket for GO term of interest' );
-								// console.log( b );
 								count = b.count;
 								return true;
 							}
@@ -108,26 +93,22 @@ request( options, function( error, response, body ) {
 						} );
 						return count;
 					}
-
-					// First GO term only
 					k = findCountTermOfInterest( clusterBuckets );
-					// console.log( 'k (no. GO term of interest in cluster / no. white balls picked):' );
-					// console.log( k );
+					// console.log( 'Number of GO term of interest in cluster:', k );
 
 
-					R.assign( 'x', k );
-					R.assign( 'm', K );
-					R.assign( 'n', N - K );
-					R.assign( 'k', n );
+					// R.assign( 'x', k );
+					// R.assign( 'm', K );
+					// R.assign( 'n', N - K );
+					// R.assign( 'k', n );
 
-					// console.log('R command:', "dhyper(x=, m=, n=, k=)");
-					var hyperGeom = R.parseEval("dhyper(x, m, n, k)");
+					//var hyperGeom = R.parseEval("dhyper(x, m, n, k)");
+					var hyperGeom = go.logHypergeometric( K, k, N, n );
 					if ( hyperGeom < 0.05 / numBuckets ) {
-						// Add ID to an array to request descriptions later
-						// Will probably be a maximum number added to the array
 						significantTerms.push( {
 							'term': term,
-							'pValue': hyperGeom[0]
+							'pValue': hyperGeom
+							//'pValue': hyperGeom[0]
 						} );
 						//console.log(hyperGeom);
 					}
@@ -158,6 +139,7 @@ request( options, function( error, response, body ) {
 					qs: data
 				};
 
+				// Find the names and descriptions of the significant terms
 				request( options, function( error, response, body ) {
 					if ( error ) {
 						console.log( error );

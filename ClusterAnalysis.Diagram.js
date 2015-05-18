@@ -101,18 +101,26 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
      *              infoTitle
      *              infoInnerContainer
      *                  infoInnerContainerText
+     *          goTermsContainer
+     *              goTermsTitle
+     *              goTermsList
      */
+    // TODO: classes instead of .css, shared class for all titles
     var $popupContainer = $( '<div>' ).addClass( 'popup-container' );
     var $graphContainer = $( '<div>' ).addClass( 'graph-container' );
     var $diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' );
 
     var $infoContainer = $( '<div>' ).addClass( 'info-container' );
     var $infoTitle = $( '<p>' ).addClass( 'info-title' ).text( "Cluster Information" );
-    var $infoInnerContainer = $( '<div>' ).addClass('info-inner-container').css("width", "100%");
+    var $infoInnerContainer = $( '<div>' ).addClass('info-inner-container');
     var $infoInnerContainerText = $( '<p>' )
             .text("Click on a cluster to display information about it.")
             .css("text-align", "center")
             .css("width", "100%");
+    var $goTermsContainer = $( '<div>' ).addClass('go-terms-container');
+    var $goTermsTitle = $( '<h3>' ).text( 'Over-represented GO terms' );
+    var $goTermsList = $( '<p>' )
+        .text( 'Click on an expression cluster to see the over-respresented GO terms' );
 
     /* Both trees:
     *  svgContainer
@@ -147,10 +155,11 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
     $diagramContainerContainer.append( $diagramContainer );
     $diagramContainer.append( $svgContainer );
 
-    $popupContainer.append( $graphContainer, $infoContainer );
+    $popupContainer.append( $graphContainer, $infoContainer, $goTermsContainer );
     $graphContainer.append( $diagramContainerBig );
     $infoContainer.append( $infoTitle, $infoInnerContainer );
     $infoInnerContainer.append( $infoInnerContainerText);
+    $goTermsContainer.append( $goTermsTitle, $goTermsList );
 
     $svgContainer.append( $title, $minimiseButton, $maximiseButton, $closeButton, $svgInnerContainer );
 
@@ -267,6 +276,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
       };
     }
 
+    // TODO: clean up getFacets
     function getFacets (a) {
         var orthoLen = that.numOrthologyClusters,
             exprLen = that.numexpressionClusters,
@@ -302,6 +312,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
         console.log(clusterIndex + ' ' + species);
         if ( clusterIndex + 1 <= orthoLen ) {
+            $goTermsList.text( 'Click on an expression cluster to see the over-respresented GO terms' );
             console.log("we are in ortho");
             analysis_id = that.orthologyClusters[clusterIndex].analysis_id
             ids = that.orthologyClusters[clusterIndex].member_ids;
@@ -323,14 +334,32 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                                      'id:' + clusterId);
             promise2 = getFacetData( 'member_ids',
                                      'og_id',
-                                     'analysis_id:' + analysis_id)
+                                     'analysis_id:' + analysis_id);
         } else {
             promise1 = getFacetData( 'member_ids',
                                      'gene_id',
                                      'id:' + clusterId );
             promise2 = getFacetData( 'member_ids',
                                      'gene_id',
-                                     'analysis_id:' + analysis_id)
+                                     'analysis_id:' + analysis_id);
+            promise3 = $.ajax( 'http://localhost:8081',  {
+                dataType: 'jsonp',
+                data: {
+                    'analysisId': analysis_id,
+                    'clusterId': clusterId,
+                    mode: 'goTerms'
+                }
+            } );
+            $.when( promise3 ).done( function( v ) {
+                if ( v[0] ) {
+                    $goTermsList.text( v[0]['name'] );
+                    for ( var i = 1; i < v.length; i++ ) {
+                            $goTermsList.append( ', ', v[i]['name'] );
+                    }
+                } else {
+                    $goTermsList.text( 'There are no over-represented GO terms in this cluster' );
+                }
+            } );
         }
 
         $.when( promise1, promise2 ).done( function( v1i, v2i ) {
