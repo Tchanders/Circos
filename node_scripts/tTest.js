@@ -22,7 +22,6 @@ var calculateExpressionValues = function (clusters) {
                 mean = clusters[i][j].avg,
                 count = clusters[i][j].count,
                 variance = (clusters[i][j].sumsq - (Math.pow(clusters[i][j].sum, 2) / count)) / (count - 1);
-//                variance = ((clusters[i][j].sumsq / clusters[i][j].count) - Math.pow(mean, 2));
 
             if ( (i === 1 && conditionIds.indexOf(conditionId) > -1) ||
                  (i === 0 ) ) {

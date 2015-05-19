@@ -355,6 +355,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 }
             });
         } else {
+            // This is the t-test request
             promise1 = $.ajax( 'http://localhost:8081', {
                 dataType: 'jsonp',
                 data: {
@@ -368,6 +369,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 showInfoPanelExpr(answer);
             })
             
+            // And this is the go term enrichment.
             promise3 = $.ajax( 'http://localhost:8081',  {
                 dataType: 'jsonp',
                 data: {

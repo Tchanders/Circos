@@ -264,7 +264,7 @@ handlers.tTest = function (inputData, callback) {
     console.log('inside tTest');
     console.log(inputData);
     
-    // First crunch the numbers for all of the clusters.    
+    // First get the numbers for all of the clusters.    
     var facet = JSON.stringify({
         conditions    : {
             terms : {
@@ -302,26 +302,18 @@ handlers.tTest = function (inputData, callback) {
 		if ( error ) {
 			console.log( error );
 		} else {
-//            console.log('response', response);
-//            console.log('body', body);
             var genomeBuckets = body.facets.conditions.buckets;
             
             // And now get the cluster data.
             data.q = '{!join from=member_ids to=gene_id} id:' + inputData.clusterId;
-//            
+
             request( options, function( error, response, body ) {
                 if ( error ) {
                     console.log( error );
                 } else {
-                    var clusterBuckets = body.facets.conditions.buckets;
-//                    console.log('cluster', clusterBuckets);
-//                    console.log('genome', genomeBuckets);
-                    
-                    var values = tTest.calculateExpressionValues([clusterBuckets, genomeBuckets]);
-//                    console.log(values);
-                    
-                    var significantValues = tTest.calculateSignificant(values);
-//                    console.log(significantValues);
+                    var clusterBuckets = body.facets.conditions.buckets,
+                        values = tTest.calculateExpressionValues([clusterBuckets, genomeBuckets]),
+                        significantValues = tTest.calculateSignificant(values);
                     
                     var conditionsWithPvalues = [];
                     for ( var i = 0, ilen = values[0].length; i < ilen; i++ ) {
@@ -333,7 +325,6 @@ handlers.tTest = function (inputData, callback) {
                         })
                     }
                     
-//                    console.log(conditionsWithPvalues);
                     callback(conditionsWithPvalues);
                 }
             });
