@@ -274,6 +274,7 @@ handlers.tTest = function (inputData, callback) {
                 sort  : { index: 'asc' },
                 facet : {
                     sumsq : 'sumsq(expression_value_d)',
+                    sum : 'sum(expression_value_d)',
                     avg   : 'avg(expression_value_d)'
                 }
             }
@@ -281,7 +282,7 @@ handlers.tTest = function (inputData, callback) {
     });
     
     var data = {
-        'q'     : '{!join from=member_ids to=gene_id} analysis_id:' + inputData.analysisId + 'NOT id:' + inputData.clusterId,
+        'q'     : '{!join from=member_ids to=gene_id} analysis_id:' + inputData.analysisId + ' NOT id:' + inputData.clusterId,
         'wt'    : 'json',
         'indent': 'true',
         'rows'  : '1',
@@ -313,8 +314,8 @@ handlers.tTest = function (inputData, callback) {
                     console.log( error );
                 } else {
                     var clusterBuckets = body.facets.conditions.buckets;
-                    console.log('cluster', clusterBuckets);
-                    console.log('genome', genomeBuckets);
+//                    console.log('cluster', clusterBuckets);
+//                    console.log('genome', genomeBuckets);
                     
                     var values = tTest.calculateExpressionValues([clusterBuckets, genomeBuckets]);
 //                    console.log(values);

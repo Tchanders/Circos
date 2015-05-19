@@ -436,84 +436,12 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             data: data
         } );
     }
-
+    
     // Display information about the cluster that you are hovering over.
     function showInfoPanelExpr(values) {
-        // TODO Test if we are in the enlarged display
-        /*
-        var clusters = [clusterBuckets, genomeBuckets],
-            expressionValues = [],
-            minYaxisValue = +Infinity,
-            maxYaxisValue = -Infinity;
-
-        for ( var i = 0, ilen = clusters.length; i < ilen; i++ ) {
-            expressionValues.push([]);
-
-            var conditionIds = [];
-            if ( i === 1 ) {
-                // Construct an array with all the condition ids so that they can
-                // be used to filter the genome ids.
-                for ( var k = 0, klen = expressionValues[0].length; k < klen; k++ ) {
-                    conditionIds.push(expressionValues[0][k].conditionId);
-                }
-            }
-
-            var nOfSkippedConditions = 0;
-            for ( var j = 0, jlen = clusters[i].length; j < jlen; j++ ) {
-                var condition = j + 1 - nOfSkippedConditions,
-                    conditionId = clusters[i][j].val,
-                    mean = clusters[i][j].avg,
-                    variance = ((clusters[i][j].sumsq / clusters[i][j].count) - Math.pow(clusters[i][j].avg, 2)),
-                    minConfidenceInterval = mean - 2 * Math.sqrt(variance),
-                    maxConfidenceInterval = mean + 2 * Math.sqrt(variance);
-
-                if ( (i === 1 && $.inArray(conditionId, conditionIds) > -1) ||
-                     ( i === 0 ) ) {
-                    expressionValues[i].push({
-                        'condition': condition,
-                        'mean': mean,
-                        'variance': variance,
-                        'minConfidenceInterval': minConfidenceInterval,
-                        'maxConfidenceInterval': maxConfidenceInterval,
-                        'conditionId': conditionId
-                    });
-
-                    if ( minYaxisValue > minConfidenceInterval ) {
-                        minYaxisValue = minConfidenceInterval
-                    };
-
-                    if ( maxYaxisValue < maxConfidenceInterval ) {
-                        maxYaxisValue = maxConfidenceInterval
-                    };
-                } else if ( i === 1 ) {
-                    nOfSkippedConditions++;
-                }
-            }
-        }
-        
-        var promise = $.ajax( 'http://localhost:8081',  {
-                dataType: 'jsonp',
-                data: {
-                    'expressionValues': expressionValues,
-                    mode: 'tTest'
-                }
-        } );
-//            $.when( promise ).done( function( v ) {
-//                if ( v[0] ) {
-//                    $goTermsList.text( v[0]['name'] );
-//                    for ( var i = 1; i < v.length; i++ ) {
-//                            $goTermsList.append( ', ', v[i]['name'] );
-//                    }
-//                } else {
-//                    $goTermsList.text( 'There are no over-represented GO terms in this cluster' );
-//                }
-//            } );
-        */
-
         $infoInnerContainer.empty()
 
-        /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
-        
+        /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* (mostly..)*/
 
         // Set the dimensions of the canvas / graph
         var margin = {top: 0, bottom: 30, left: 30, right: 20},
@@ -554,41 +482,20 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         x.domain(d3.extent(data, function(d) { return d.condition; }));
         y.domain([d3.min(data, function (d) { return d.mean - 0.1}),
                   d3.max(data, function (d) {return d.mean + 0.1})]);
-//        y.domain(d3.extent([minYaxisValue, maxYaxisValue], function(d) { return d; }));
-
-        // First draw the red lines for the genome confidence interval in the background;
-//        data = expressionValues[1];
-//        infoPanelsvg.selectAll("line")
-//            .data(data)
-//            .enter().append("svg:line")
-//            .attr("class", "genome-line")
-//            .attr("y1", function (d) { return y(d.maxConfidenceInterval); })
-//            .attr("y2", function (d) { return y(d.minConfidenceInterval); })
-//            .attr("x1", function (d) { return x(d.condition); })
-//            .attr("x2", function (d) { return x(d.condition); })
-//            .attr("stroke", "red");
-
-//        data = expressionValues[0];
-//
-//        infoPanelsvg.selectAll("dot")
-//            .data(data)
-//            .enter().append("svg:line")
-//            .attr("class", "cluster-line")
-//            .attr("y1", function (d) { return y(d.maxConfidenceInterval); })
-//            .attr("y2", function (d) { return y(d.minConfidenceInterval); })
-//            .attr("x1", function (d) { return x(d.condition); })
-//            .attr("x2", function (d) { return x(d.condition); })
-//            .attr("stroke", "grey")
-//            .attr("opacity", 0.8);
 
         // Add the dots
         infoPanelsvg.selectAll("dot")
             .data(data)
             .enter()
             .append("circle")
-            .attr("r", 2)
+            .attr("r", 2.5)
             .attr("cx", function(d) { return x(d.condition); })
             .attr("cy", function(d) { return y(d.mean); })
+            .style("stroke", function (d) {
+                if (d.pValue !== null && (d.pValue < 0.05 / values.length )) {
+                    return 'red';
+                }
+            })
             .on("mouseover", function(d) {
                 var conditionId = d.conditionId,
                     promise = getConditionInfo(conditionId),
@@ -630,15 +537,12 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
     // Display information about the cluster that you are hovering over.
     function showInfoPanelOrtho(clusterBuckets, genomeBuckets) {
-        // TODO Test if we are in the enlarged display
         var minSpeciesRatio = 10000,
             clusters = [clusterBuckets, genomeBuckets],
             orthologyValues = [],
             ogClusterStats = [];
 
         for ( var i = 0, ilen = clusters.length; i < ilen; i++ ) {
-//            orthologyValues.push([]);
-
             orthologyValues[i] = {
                 'evorHist': clusters[i].evor.buckets,
                 'evorMean': clusters[i].evorMean,

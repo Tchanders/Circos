@@ -1,4 +1,5 @@
 var student = require( 'distributions' ).Studentt; // Necessary to get the pdf fot the t-test
+var rstats = require( 'rstats' ); // Necessary to get the pdf fot the t-test
 
 var calculateExpressionValues = function (clusters) {
     var expressionValues = [];
@@ -20,7 +21,8 @@ var calculateExpressionValues = function (clusters) {
                 conditionId = clusters[i][j].val,
                 mean = clusters[i][j].avg,
                 count = clusters[i][j].count,
-                variance = ((clusters[i][j].sumsq / clusters[i][j].count) - Math.pow(mean, 2));
+                variance = (clusters[i][j].sumsq - (Math.pow(clusters[i][j].sum, 2) / count)) / (count - 1);
+//                variance = ((clusters[i][j].sumsq / clusters[i][j].count) - Math.pow(mean, 2));
 
             if ( (i === 1 && conditionIds.indexOf(conditionId) > -1) ||
                  (i === 0 ) ) {
@@ -42,6 +44,8 @@ var calculateExpressionValues = function (clusters) {
 
 var calculateSignificant = function (clusters) {
     var significant = [];
+//    var R = new rstats.session();
+    
     // Go over the cluster and background values and do the test statistics.
     for ( var i = 0, ilen = clusters[0].length; i < ilen; i++ ) {
         var clusterCount = clusters[0][i].count,
@@ -57,8 +61,16 @@ var calculateSignificant = function (clusters) {
         var dfEstNumerator = Math.pow((clusterVar/clusterCount) + (genomeVar/genomeCount), 2),
             dfEstDenominatorCluster = Math.pow((clusterVar / clusterCount), 2) / (clusterCount - 1),
             dfEstDenominatorGenome = Math.pow((genomeVar / genomeCount), 2) / (genomeCount - 1),
-            df = dfEstNumerator / (dfEstDenominatorCluster + dfEstDenominatorGenome),
-            pValue = student(df).pdf(tStatistic);
+            df = dfEstNumerator / (dfEstDenominatorCluster + dfEstDenominatorGenome);
+            // Multiply by two because this is a two tailed test.
+            pValue = student(df).cdf(-Math.abs(tStatistic)) * 2;
+//        
+//        R.assign('x', tStatistic);
+//        R.assign('df', df);
+//        
+//        var pValue = R.parseEval("2 * pt(-abs(x), df)")[0];
+        
+        console.log(i+1, clusterVar, genomeVar, tStatistic, df, pValue);
         
         significant.push({
             'pValue': pValue
