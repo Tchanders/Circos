@@ -3,6 +3,7 @@ var request = require( 'request' );
 var url = require( 'url' );
 var rstats = require( 'rstats' ); // If we use R
 var go = require( './hypergeometric' ); // If we use nodejs
+var tTest = require( './tTest' ); // Rename TODO
 
 // Pre-made dictionary of genes to orthologous groups
 var geneToGroup = require( '../static_files/geneToOG.json' );
@@ -257,4 +258,76 @@ handlers.goTerms = function( inputData, callback ) {
 
 		}
 	} );
+};
+
+handlers.tTest = function (inputData, callback) {
+    console.log('inside tTest');
+    console.log(inputData);
+    
+    // First get the numbers for all of the clusters.    
+    var facet = JSON.stringify({
+        conditions    : {
+            terms : {
+                field : 'condition_id',
+                numBuckets : true,
+                limit : 0,
+                sort  : { index: 'asc' },
+                facet : {
+                    sumsq : 'sumsq(expression_value_d)',
+                    sum : 'sum(expression_value_d)',
+                    avg   : 'avg(expression_value_d)'
+                }
+            }
+        }
+    });
+    
+    var data = {
+        'q'     : '{!join from=member_ids to=gene_id} analysis_id:' + inputData.analysisId + ' NOT id:' + inputData.clusterId,
+        'wt'    : 'json',
+        'indent': 'true',
+        'rows'  : '1',
+        'json.facet': facet
+    };
+    
+    console.log(data);
+    
+    // Make options for the request
+	var options = {
+		url: 'http://localhost:8983/solr/circos/select',
+		json: true,
+		qs: data
+	};
+    
+    request( options, function( error, response, body ) {
+		if ( error ) {
+			console.log( error );
+		} else {
+            var genomeBuckets = body.facets.conditions.buckets;
+            
+            // And now get the cluster data.
+            data.q = '{!join from=member_ids to=gene_id} id:' + inputData.clusterId;
+
+            request( options, function( error, response, body ) {
+                if ( error ) {
+                    console.log( error );
+                } else {
+                    var clusterBuckets = body.facets.conditions.buckets,
+                        values = tTest.calculateExpressionValues([clusterBuckets, genomeBuckets]),
+                        significantValues = tTest.calculateSignificant(values);
+                    
+                    var conditionsWithPvalues = [];
+                    for ( var i = 0, ilen = values[0].length; i < ilen; i++ ) {
+                        conditionsWithPvalues.push({
+                            'condition': values[0][i].condition,
+                            'conditionId': values[0][i].conditionId,
+                            'mean': values[0][i].mean,
+                            'pValue': significantValues[i].pValue
+                        })
+                    }
+                    
+                    callback(conditionsWithPvalues);
+                }
+            });
+        }
+    });
 };

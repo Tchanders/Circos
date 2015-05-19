@@ -326,7 +326,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         }
 
         // Construct the request
-        var promise1, promise2;
+        var promise1, promise2, promise3;
 
         if ( clusterIndex + 1 <= orthoLen ) {
             promise1 = getFacetData( 'member_ids',
@@ -335,13 +335,41 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             promise2 = getFacetData( 'member_ids',
                                      'og_id',
                                      'analysis_id:' + analysis_id);
+            
+            $.when( promise1, promise2 ).done( function( v1i, v2i ) {
+                /* The response is an array with three elements:
+                 *   [0]: The actual response from solr.
+                 *   [1]: success or failure. Mayne check for this before proceeding?
+                 *   [2]: Info from Ajax. Useless.
+                 * So we always have to the 0th element of the response.
+                 */
+               console.log(v1i, v2i)
+                if ( clusterIndex + 1 <= orthoLen ) {
+                    var clusterBuckets = v1i[0].facets,
+                        genomeBuckets = v2i[0].facets;
+                    showInfoPanelOrtho(clusterBuckets, genomeBuckets);
+                } else {
+                    var clusterBuckets = v1i[0].facets.conditions.buckets,
+                        genomeBuckets = v2i[0].facets.conditions.buckets;
+                    showInfoPanelExpr(clusterBuckets, genomeBuckets);
+                }
+            });
         } else {
-            promise1 = getFacetData( 'member_ids',
-                                     'gene_id',
-                                     'id:' + clusterId );
-            promise2 = getFacetData( 'member_ids',
-                                     'gene_id',
-                                     'analysis_id:' + analysis_id);
+            // This is the t-test request
+            promise1 = $.ajax( 'http://localhost:8081', {
+                dataType: 'jsonp',
+                data: {
+                    'analysisId': analysis_id,
+                    'clusterId': clusterId,
+                    mode: 'tTest'
+                }
+            });
+            $.when( promise1 ).done( function (answer) {
+                console.log('from nodejs', answer);
+                showInfoPanelExpr(answer);
+            })
+            
+            // And this is the go term enrichment.
             promise3 = $.ajax( 'http://localhost:8081',  {
                 dataType: 'jsonp',
                 data: {
@@ -361,25 +389,6 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 }
             } );
         }
-
-        $.when( promise1, promise2 ).done( function( v1i, v2i ) {
-            /* The response is an array with three elements:
-             *   [0]: The actual response from solr.
-             *   [1]: success or failure. Mayne check for this before proceeding?
-             *   [2]: Info from Ajax. Useless.
-             * So we always have to the 0th element of the response.
-             */
-           console.log(v1i, v2i)
-            if ( clusterIndex + 1 <= orthoLen ) {
-                var clusterBuckets = v1i[0].facets,
-                    genomeBuckets = v2i[0].facets;
-                showInfoPanelOrtho(clusterBuckets, genomeBuckets);
-            } else {
-                var clusterBuckets = v1i[0].facets.conditions.buckets,
-                    genomeBuckets = v2i[0].facets.conditions.buckets;
-                showInfoPanelExpr(clusterBuckets, genomeBuckets);
-            }
-        });
     }
 
     function getFacetData(from, to, initialParameter, filter) {
@@ -429,63 +438,12 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             data: data
         } );
     }
-
+    
     // Display information about the cluster that you are hovering over.
-    function showInfoPanelExpr(clusterBuckets, genomeBuckets) {
-        // TODO Test if we are in the enlarged display
-        var clusters = [clusterBuckets, genomeBuckets],
-            expressionValues = [],
-            minYaxisValue = +Infinity,
-            maxYaxisValue = -Infinity;
-
+    function showInfoPanelExpr(values) {
         $infoInnerContainer.empty()
 
-        for ( var i = 0, ilen = clusters.length; i < ilen; i++ ) {
-            expressionValues.push([]);
-
-            var conditionIds = [];
-            if ( i === 1 ) {
-                // Construct an array with all the condition ids so that they can
-                // be used to filter the genome ids.
-                for ( var k = 0, klen = expressionValues[0].length; k < klen; k++ ) {
-                    conditionIds.push(expressionValues[0][k].conditionId);
-                }
-            }
-
-            var nOfSkippedConditions = 0;
-            for ( var j = 0, jlen = clusters[i].length; j < jlen; j++ ) {
-                var condition = j + 1 - nOfSkippedConditions,
-                    conditionId = clusters[i][j].val,
-                    mean = clusters[i][j].avg,
-                    variance = ((clusters[i][j].sumsq / clusters[i][j].count) - Math.pow(clusters[i][j].avg, 2)),
-                    minConfidenceInterval = mean - 2 * Math.sqrt(variance),
-                    maxConfidenceInterval = mean + 2 * Math.sqrt(variance);
-
-                if ( (i === 1 && $.inArray(conditionId, conditionIds) > -1) ||
-                     ( i === 0 ) ) {
-                    expressionValues[i].push({
-                        'condition': condition,
-                        'mean': mean,
-                        'variance': variance,
-                        'minConfidenceInterval': minConfidenceInterval,
-                        'maxConfidenceInterval': maxConfidenceInterval,
-                        'conditionId': conditionId
-                    });
-
-                    if ( minYaxisValue > minConfidenceInterval ) {
-                        minYaxisValue = minConfidenceInterval
-                    };
-
-                    if ( maxYaxisValue < maxConfidenceInterval ) {
-                        maxYaxisValue = maxConfidenceInterval
-                    };
-                } else if ( i === 1 ) {
-                    nOfSkippedConditions++;
-                }
-            }
-        }
-
-        /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* */
+        /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* (mostly..)*/
 
         // Set the dimensions of the canvas / graph
         var margin = {top: 0, bottom: 30, left: 30, right: 20},
@@ -520,50 +478,32 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                       "translate(" + margin.left + "," + margin.top + ")");
 
         // Get the data
-        var data = expressionValues[0];
+        var data = values;
 
         // Scale the range of the data
         x.domain(d3.extent(data, function(d) { return d.condition; }));
-        y.domain(d3.extent([minYaxisValue, maxYaxisValue], function(d) { return d; }));
-
-        // First draw the red lines for the genome confidence interval in the background;
-        data = expressionValues[1];
-        infoPanelsvg.selectAll("line")
-            .data(data)
-            .enter().append("svg:line")
-            .attr("class", "genome-line")
-            .attr("y1", function (d) { return y(d.maxConfidenceInterval); })
-            .attr("y2", function (d) { return y(d.minConfidenceInterval); })
-            .attr("x1", function (d) { return x(d.condition); })
-            .attr("x2", function (d) { return x(d.condition); })
-            .attr("stroke", "red");
-
-        data = expressionValues[0];
-
-        infoPanelsvg.selectAll("dot")
-            .data(data)
-            .enter().append("svg:line")
-            .attr("class", "cluster-line")
-            .attr("y1", function (d) { return y(d.maxConfidenceInterval); })
-            .attr("y2", function (d) { return y(d.minConfidenceInterval); })
-            .attr("x1", function (d) { return x(d.condition); })
-            .attr("x2", function (d) { return x(d.condition); })
-            .attr("stroke", "grey")
-            .attr("opacity", 0.8);
+        y.domain([d3.min(data, function (d) { return d.mean - 0.1}),
+                  d3.max(data, function (d) {return d.mean + 0.1})]);
 
         // Add the dots
         infoPanelsvg.selectAll("dot")
             .data(data)
             .enter()
             .append("circle")
-            .attr("r", 2)
+            .attr("r", 2.5)
             .attr("cx", function(d) { return x(d.condition); })
             .attr("cy", function(d) { return y(d.mean); })
+            .style("stroke", function (d) {
+                if (d.pValue !== null && (d.pValue < 0.05 / values.length )) {
+                    return 'red';
+                }
+            })
             .on("mouseover", function(d) {
                 var conditionId = d.conditionId,
                     promise = getConditionInfo(conditionId),
 //                    promise = PostToSolr(conditionId, [], 1, false),
                     conditionName,
+                    pvalue = d.pValue,
                     xcoord = d3.event.pageX,
                     ycoord = d3.event.pageY;
 
@@ -574,7 +514,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                         .duration(200)
                         .style("opacity", .9);
 
-                    hoverDiv.html(conditionName)
+                    hoverDiv.html(conditionName + '<br/>' + pvalue)
                         .style("left", xcoord + "px")
                         .style("top", ycoord + "px");
                 });
@@ -599,15 +539,12 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
     // Display information about the cluster that you are hovering over.
     function showInfoPanelOrtho(clusterBuckets, genomeBuckets) {
-        // TODO Test if we are in the enlarged display
         var minSpeciesRatio = 10000,
             clusters = [clusterBuckets, genomeBuckets],
             orthologyValues = [],
             ogClusterStats = [];
 
         for ( var i = 0, ilen = clusters.length; i < ilen; i++ ) {
-//            orthologyValues.push([]);
-
             orthologyValues[i] = {
                 'evorHist': clusters[i].evor.buckets,
                 'evorMean': clusters[i].evorMean,

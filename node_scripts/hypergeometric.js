@@ -1,4 +1,4 @@
-var Big = require( '../lib/js/big.js-master/big' );
+//var Big = require( '../lib/js/big.js-master/big' );
 
 // Perform GO term enrichment analysis
 
