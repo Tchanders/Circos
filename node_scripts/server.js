@@ -253,8 +253,10 @@ handlers.goTerms = function( inputData, callback ) {
 							var allResults = body.response.docs;
 							allResults.forEach( function( result ) {
 								var currentTerm = significantTerms[result.id];
-								result.pValue = currentTerm.pValue.toPrecision( 7 );
-								result.expected = Math.round( currentTerm.expected );
+								//result.pValue = currentTerm.pValue.toPrecision( 7 );
+								result.pValue = currentTerm.pValue;
+								//result.expected = Math.round( currentTerm.expected );
+								result.expected = currentTerm.expected;
 								result.observed = currentTerm.observed;
 								console.log( result );
 							} );

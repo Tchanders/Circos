@@ -395,8 +395,8 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 }
             } );
             $.when( promise3 ).done( function( v ) {
+                $goTermsTableBody.empty();
                 if ( v[0] ) {
-                    $goTermsTableBody.empty();
                     $goTermsList.text( '' );
                     $goTermsList.append( $goTermsTable );
                     for ( var i = 0; i < v.length; i++ ) {
@@ -410,9 +410,9 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                         $goTermsTableRow.append(
                             $( '<td>' ).text( v[i]['name'] ),
                             $( '<td>' ).text( v[i]['observed'] ),
-                            $( '<td>' ).text( v[i]['expected'] ),
+                            $( '<td>' ).text( Math.round( v[i]['expected'] ) ),
                             $( '<td>' ).text( '+' + percentage + '%' ),
-                            $( '<td>' ).text( v[i]['pValue'] )
+                            $( '<td>' ).text( v[i]['pValue'].toPrecision( 7 ) )
                         );
                         $goTermsTableBody.append( $goTermsTableRow );
                     }
