@@ -60,19 +60,18 @@ var calculateSignificant = function (clusters) {
         var dfEstNumerator = Math.pow((clusterVar/clusterCount) + (genomeVar/genomeCount), 2),
             dfEstDenominatorCluster = Math.pow((clusterVar / clusterCount), 2) / (clusterCount - 1),
             dfEstDenominatorGenome = Math.pow((genomeVar / genomeCount), 2) / (genomeCount - 1),
-            df = dfEstNumerator / (dfEstDenominatorCluster + dfEstDenominatorGenome);
+            df = dfEstNumerator / (dfEstDenominatorCluster + dfEstDenominatorGenome),
             // Multiply by two because this is a two tailed test.
-            pValue = student(df).cdf(-Math.abs(tStatistic)) * 2;
-//        
-//        R.assign('x', tStatistic);
-//        R.assign('df', df);
-//        
-//        var pValue = R.parseEval("2 * pt(-abs(x), df)")[0];
+            pValue = student(df).cdf(-Math.abs(tStatistic)) * 2,
+            pValueNegLog10 = -Math.log10(pValue),
+            foldChange = clusterMean - genomeMean;
         
-        console.log(i+1, clusterVar, genomeVar, tStatistic, df, pValue);
+        console.log(i+1, clusterMean, genomeMean, foldChange, pValue, pValueNegLog10);
         
         significant.push({
-            'pValue': pValue
+            'pValue': pValue,
+            'foldChange': foldChange,
+            'pValueNegLog10': pValueNegLog10
         });
     }
     

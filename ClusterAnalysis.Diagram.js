@@ -446,7 +446,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* (mostly..)*/
 
         // Set the dimensions of the canvas / graph
-        var margin = {top: 0, bottom: 30, left: 30, right: 20},
+        var margin = {top: 0, bottom: 30, left: 70, right: 20},
             // The line plot indide info panel gets its dimensions from graphContainer
             // maybe TODO ?
             width = $infoContainer.width() - margin.left - margin.right,
@@ -479,11 +479,14 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
         // Get the data
         var data = values;
+        console.log('values', values)
 
         // Scale the range of the data
-        x.domain(d3.extent(data, function(d) { return d.condition; }));
-        y.domain([d3.min(data, function (d) { return d.mean - 0.1}),
-                  d3.max(data, function (d) {return d.mean + 0.1})]);
+//        x.domain(d3.extent(data, function(d) { return d.foldChange; }));
+        x.domain([d3.min(data, function (d) { return d.foldChange - 0.01}),
+                  d3.max(data, function (d) {return d.foldChange + 0.01})]);
+        y.domain([d3.min(data, function (d) { return d.pValueNegLog10 - 2}),
+                  d3.max(data, function (d) {return d.pValueNegLog10 + 2})]);
 
         // Add the dots
         infoPanelsvg.selectAll("dot")
@@ -491,8 +494,8 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .enter()
             .append("circle")
             .attr("r", 2.5)
-            .attr("cx", function(d) { return x(d.condition); })
-            .attr("cy", function(d) { return y(d.mean); })
+            .attr("cx", function(d) { return x(d.foldChange); })
+            .attr("cy", function(d) { return y(d.pValueNegLog10); })
             .style("stroke", function (d) {
                 if (d.pValue !== null && (d.pValue < 0.05 / values.length )) {
                     return 'red';
