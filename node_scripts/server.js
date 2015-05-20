@@ -150,7 +150,7 @@ handlers.goTerms = function( inputData, callback ) {
 		} else {
 
 			var N, n, K, k, term;
-			var significantTerms = [];
+			var significantTerms = {};
 			var allBuckets = body.facets.conditions.buckets;
 			var numBuckets = body.facets.conditions.numBuckets;
 			console.log( numBuckets );
@@ -206,34 +206,34 @@ handlers.goTerms = function( inputData, callback ) {
 						// R.assign( 'n', N - K );
 						// R.assign( 'k', n );
 
-						//var hyperGeom = R.parseEval("dhyper(x, m, n, k)");
-						var hyperGeom = go.logHypergeometric( K, k, N, n );
-						if ( hyperGeom < 0.05 / numBuckets ) {
-							significantTerms.push( {
-								'term': term,
-								'pValue': hyperGeom
-								//'pValue': hyperGeom[0]
-							} );
-							//console.log(hyperGeom);
+						var expected = n * K / N;
+						if ( k > expected ) {
+							var hyperGeom = go.logHypergeometric( K, k, N, n );
+							//var hyperGeom = R.parseEval("dhyper(x, m, n, k)");
+							if ( hyperGeom < 0.05 / numBuckets ) {
+								significantTerms[term] = {
+									'pValue': hyperGeom,
+									//'pValue': hyperGeom[0]
+									'expected': expected,
+									'observed': k
+								};
+								//console.log(hyperGeom);
+							}
 						}
 
 					} );
 
-					//console.log( significantTerms, significantTerms.length );
+					//console.log( significantTerms, Object.keys( significantTerms ), Object.keys( significantTerms ).length );
 
-					significantIDs = [];
-					var q = significantTerms.forEach( function( value ) {
-						significantIDs.push( 'id:"' + value.term + '"' );
-					} );
-					q = significantIDs.join( ' OR ' );
-					console.log( q );
+					q = 'id:"' + Object.keys( significantTerms ).join( '" OR id:"' ) + '"';
+					//console.log( q );
 
 					// Make the data part of the options
 					var data = {
 						'q': q,
-						'fl': 'name,description',
+						'fl': 'id,name,description',
 						'wt': 'json',
-						'rows': significantTerms.length
+						'rows': Object.keys( significantTerms ).length
 					};
 
 					// Make options for the request
@@ -248,7 +248,16 @@ handlers.goTerms = function( inputData, callback ) {
 						if ( error ) {
 							console.log( error );
 						} else {
-							// body.response.docs is an array of objects: {'name', 'description'}
+							// body.response.docs is an array of objects: {'id', 'name', 'description'}
+							console.log( body.response.docs );
+							var allResults = body.response.docs;
+							allResults.forEach( function( result ) {
+								var currentTerm = significantTerms[result.id];
+								result.pValue = currentTerm.pValue.toPrecision( 7 );
+								result.expected = Math.round( currentTerm.expected );
+								result.observed = currentTerm.observed;
+								console.log( result );
+							} );
 							callback( body.response.docs );
 						}
 					} );

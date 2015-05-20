@@ -104,6 +104,10 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
      *          goTermsContainer
      *              goTermsTitle
      *              goTermsList
+     *                  goTermsTable
+     *                      goTermsTableHead
+     *                          goTermsTableHeadings
+     *                      goTermsTableBody
      */
     // TODO: classes instead of .css, shared class for all titles
     var $popupContainer = $( '<div>' ).addClass( 'popup-container' );
@@ -119,8 +123,16 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .css("width", "100%");
     var $goTermsContainer = $( '<div>' ).addClass('go-terms-container');
     var $goTermsTitle = $( '<h3>' ).text( 'Over-represented GO terms' );
-    var $goTermsList = $( '<p>' )
-        .text( 'Click on an expression cluster to see the over-respresented GO terms' );
+    var $goTermsList = $( '<div>' )
+        .text( 'Click on an expression cluster to see the over-respresented GO terms' )
+        .addClass( 'go-terms-list' );
+    var $goTermsTable = $( '<table>' )
+        .attr( 'id', 'myTable' )
+        .attr( 'class', 'tablesorter' );
+    var $goTermsTableHead = $( '<thead>' );
+    var $goTermsTableHeadings = $( '<tr>' );
+    var $goTermsTableBody = $( '<tbody>' );
+
 
     /* Both trees:
     *  svgContainer
@@ -160,6 +172,16 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
     $infoContainer.append( $infoTitle, $infoInnerContainer );
     $infoInnerContainer.append( $infoInnerContainerText);
     $goTermsContainer.append( $goTermsTitle, $goTermsList );
+    //$goTermsList.apend( $goTermsTable );
+    $goTermsTable.append( $goTermsTableHead, $goTermsTableBody );
+    $goTermsTableHead.append( $goTermsTableHeadings );
+    $goTermsTableHeadings.append(
+        $( '<th>' ).text( 'Name' ),
+        $( '<th>' ).text( 'Observed' ),
+        $( '<th>' ).text( 'Expected' ),
+        $( '<th>' ).text( 'Percentage' ),
+        $( '<th>' ).text( 'p-value' )
+    );
 
     $svgContainer.append( $title, $minimiseButton, $maximiseButton, $closeButton, $svgInnerContainer );
 
@@ -374,9 +396,25 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             } );
             $.when( promise3 ).done( function( v ) {
                 if ( v[0] ) {
-                    $goTermsList.text( v[0]['name'] );
-                    for ( var i = 1; i < v.length; i++ ) {
-                            $goTermsList.append( ', ', v[i]['name'] );
+                    $goTermsTableBody.empty();
+                    $goTermsList.text( '' );
+                    $goTermsList.append( $goTermsTable );
+                    for ( var i = 0; i < v.length; i++ ) {
+                        // //$goTermsList.append( ', ', v[i]['name'] );
+                        // $goTermsList.append( $( '<div>' )
+                        //     .text( v[i]['name'] )
+                        //     .addClass( 'go-term' )
+                        // );
+                        var percentage = ( ( ( v[i]['observed'] - v[i]['expected'] ) / v[i]['expected'] ) * 100 ).toPrecision( 3 );
+                        var $goTermsTableRow = $( '<tr>' );
+                        $goTermsTableRow.append(
+                            $( '<td>' ).text( v[i]['name'] ),
+                            $( '<td>' ).text( v[i]['observed'] ),
+                            $( '<td>' ).text( v[i]['expected'] ),
+                            $( '<td>' ).text( '+' + percentage + '%' ),
+                            $( '<td>' ).text( v[i]['pValue'] )
+                        );
+                        $goTermsTableBody.append( $goTermsTableRow );
                     }
                 } else {
                     $goTermsList.text( 'There are no over-represented GO terms in this cluster' );
