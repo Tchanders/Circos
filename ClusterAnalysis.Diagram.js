@@ -478,29 +478,32 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                       "translate(" + margin.left + "," + margin.top + ")");
 
         // Get the data
-        var data = values;
-        console.log('values', values)
+        var data = values,
+            dotRadius = 2.5,
+            maxYCoord = d3.max(data, function (d) {return d.pValueNegLog10}),
+            minYCoord = d3.min(data, function (d) { return d.pValueNegLog10}),
+            maxXCoord = d3.max(data, function (d) {return d.foldChange}),
+            minXCoord = d3.min(data, function (d) { return d.foldChange}),
+            YSpan = (maxYCoord - minYCoord) / 100;
 
         // Scale the range of the data
 //        x.domain(d3.extent(data, function(d) { return d.foldChange; }));
-        x.domain([d3.min(data, function (d) { return d.foldChange - 0.01}),
-                  d3.max(data, function (d) {return d.foldChange + 0.01})]);
-        y.domain([d3.min(data, function (d) { return d.pValueNegLog10 - 2}),
-                  d3.max(data, function (d) {return d.pValueNegLog10 + 2})]);
+        x.domain([minXCoord - dotRadius / 100, maxXCoord + dotRadius / 100]);
+        y.domain([minYCoord - YSpan, maxYCoord + YSpan]);
 
         // Add the dots
         infoPanelsvg.selectAll("dot")
             .data(data)
             .enter()
             .append("circle")
-            .attr("r", 2.5)
+            .attr("r", dotRadius)
             .attr("cx", function(d) { return x(d.foldChange); })
             .attr("cy", function(d) { return y(d.pValueNegLog10); })
-            .style("stroke", function (d) {
-                if (d.pValue !== null && (d.pValue < 0.05 / values.length )) {
-                    return 'red';
-                }
-            })
+//            .style("stroke", function (d) {
+//                if (d.pValue !== null && (d.pValue < 0.05 / values.length )) {
+//                    return 'red';
+//                }
+//            })
             .on("mouseover", function(d) {
                 var conditionId = d.conditionId,
                     promise = getConditionInfo(conditionId),
@@ -538,6 +541,18 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         infoPanelsvg.append("g")
             .attr("class", "y axis")
             .call(yAxis);
+        
+        // Add the 0.05 and 0.01 p-value significance lines
+        infoPanelsvg.append("svg:line")
+            .attr("class", "significance line")
+            .attr({
+                'x1': x(d3.min(data, function (d) { return d.foldChange - 0.01})),
+                'x2': x(d3.max(data, function (d) { return d.foldChange + 0.01})),
+                'y1': y(-Math.log10(0.05 / values.length)),
+                'y2': y(-Math.log10(0.05 / values.length)) + 1
+            })
+            .style("stroke", "red")
+            .style("stroke-dasharray", ("5, 5"));
     }
 
     // Display information about the cluster that you are hovering over.
