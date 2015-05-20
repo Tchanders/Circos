@@ -446,7 +446,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* (mostly..)*/
 
         // Set the dimensions of the canvas / graph
-        var margin = {top: 0, bottom: 30, left: 70, right: 20},
+        var margin = {top: 0, bottom: 40, left: 70, right: 20},
             // The line plot indide info panel gets its dimensions from graphContainer
             // maybe TODO ?
             width = $infoContainer.width() - margin.left - margin.right,
@@ -487,7 +487,6 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             YSpan = (maxYCoord - minYCoord) / 100;
 
         // Scale the range of the data
-//        x.domain(d3.extent(data, function(d) { return d.foldChange; }));
         x.domain([minXCoord - dotRadius / 100, maxXCoord + dotRadius / 100]);
         y.domain([minYCoord - YSpan, maxYCoord + YSpan]);
 
@@ -499,11 +498,11 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .attr("r", dotRadius)
             .attr("cx", function(d) { return x(d.foldChange); })
             .attr("cy", function(d) { return y(d.pValueNegLog10); })
-//            .style("stroke", function (d) {
-//                if (d.pValue !== null && (d.pValue < 0.05 / values.length )) {
-//                    return 'red';
-//                }
-//            })
+            .style("fill", function (d) {
+                if (d.pValue !== null && (d.foldChange < 0.5 && d.foldChange > -0.5)) {
+                    return '#bbb';
+                }
+            })
             .on("mouseover", function(d) {
                 var conditionId = d.conditionId,
                     promise = getConditionInfo(conditionId),
@@ -553,6 +552,21 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             })
             .style("stroke", "red")
             .style("stroke-dasharray", ("5, 5"));
+        
+        // Add the X axis label
+        infoPanelsvg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height + margin.bottom - 5)
+            .style("text-anchor", "middle")
+            .text("log2 fold change");
+        
+        // Add the Y axis label
+        infoPanelsvg.append("text")
+            .attr("x", 0 - (height / 2))
+            .attr("y", 0 - margin.left + 25)
+            .attr("transform", "rotate(-90)")
+            .style("text-anchor", "middle")
+            .text("-log10 p-value");
     }
 
     // Display information about the cluster that you are hovering over.
