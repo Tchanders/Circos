@@ -479,7 +479,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
         // Get the data
         var data = values,
-            dotRadius = 2.5,
+            dotRadius = 4.5,
             maxYCoord = d3.max(data, function (d) {return d.pValueNegLog10}),
             minYCoord = d3.min(data, function (d) { return d.pValueNegLog10}),
             maxXCoord = d3.max(data, function (d) {return d.foldChange}),
@@ -499,7 +499,9 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .attr("cx", function(d) { return x(d.foldChange); })
             .attr("cy", function(d) { return y(d.pValueNegLog10); })
             .style("fill", function (d) {
-                if (d.pValue !== null && (d.foldChange < 0.5 && d.foldChange > -0.5)) {
+                // This used to have a check for pValue !== null but the foldChange check
+                // superseeds it.
+                if (d.foldChange < 0.5 && d.foldChange > -0.5) {
                     return '#bbb';
                 }
             })
@@ -548,9 +550,9 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 'x1': x(d3.min(data, function (d) { return d.foldChange - 0.01})),
                 'x2': x(d3.max(data, function (d) { return d.foldChange + 0.01})),
                 'y1': y(-Math.log10(0.05 / values.length)),
-                'y2': y(-Math.log10(0.05 / values.length)) + 1
+                'y2': y(-Math.log10(0.05 / values.length))
             })
-            .style("stroke", "red")
+            .style("stroke", "#FFCC14")
             .style("stroke-dasharray", ("5, 5"));
         
         // Add the X axis label
