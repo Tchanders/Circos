@@ -176,10 +176,10 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
     $goTermsTable.append( $goTermsTableHead, $goTermsTableBody );
     $goTermsTableHead.append( $goTermsTableHeadings );
     $goTermsTableHeadings.append(
-        $( '<th>' ).text( 'Name' ),
+        $( '<th>' ).addClass( 'table-name' ).text( 'Name' ),
         $( '<th>' ).text( 'Observed' ),
         $( '<th>' ).text( 'Expected' ),
-        $( '<th>' ).text( 'Percentage' ),
+        $( '<th>' ).text( 'Observed/Expected' ),
         $( '<th>' ).text( 'p-value' )
     );
 
@@ -395,30 +395,27 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 }
             } );
             $.when( promise3 ).done( function( v ) {
+
                 $goTermsTableBody.empty();
                 if ( v[0] ) {
                     $goTermsList.text( '' );
                     $goTermsList.append( $goTermsTable );
                     for ( var i = 0; i < v.length; i++ ) {
-                        // //$goTermsList.append( ', ', v[i]['name'] );
-                        // $goTermsList.append( $( '<div>' )
-                        //     .text( v[i]['name'] )
-                        //     .addClass( 'go-term' )
-                        // );
-                        var percentage = ( ( ( v[i]['observed'] - v[i]['expected'] ) / v[i]['expected'] ) * 100 ).toPrecision( 3 );
+                        var increase = ( v[i]['observed'] / v[i]['expected'] ).toPrecision( 3 );
                         var $goTermsTableRow = $( '<tr>' );
                         $goTermsTableRow.append(
                             $( '<td>' ).text( v[i]['name'] ),
                             $( '<td>' ).text( v[i]['observed'] ),
-                            $( '<td>' ).text( Math.round( v[i]['expected'] ) ),
-                            $( '<td>' ).text( '+' + percentage + '%' ),
-                            $( '<td>' ).text( v[i]['pValue'].toPrecision( 7 ) )
+                            $( '<td>' ).text( v[i]['expected'].toPrecision( 3 ) ),
+                            $( '<td>' ).text( increase ),
+                            $( '<td>' ).text( v[i]['pValue'].toPrecision( 3 ) )
                         );
                         $goTermsTableBody.append( $goTermsTableRow );
                     }
                 } else {
                     $goTermsList.text( 'There are no over-represented GO terms in this cluster' );
                 }
+                $("#myTable").tablesorter( {sortList: [[3, 1]]} );
             } );
         }
     }
