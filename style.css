@@ -168,13 +168,6 @@ path {
     fill: none;
 }
 
-.axis path, .axis line {
-    fill: none;
-    stroke: grey;
-    stroke-width: 1;
-    shape-rendering: crispEdges;
-}
-
 /* From the d3.js cookbook */
 div.tooltip {
     position: absolute;
@@ -190,4 +183,43 @@ div.tooltip {
 .info-inner-container > * {
     display: inline-block;
     width: 100%;
+}
+
+/*Box/Violin plot spesific css*/
+.area{
+    shape-rendering: geometricPrecision;
+    fill: #ccc !important;
+}
+
+.boxplot{
+    shape-rendering: crispEdges;
+    fill: none;
+    stroke: black;
+    stroke-width: 2px;
+}
+.boxplot.fill{
+    fill: none;
+}
+.boxplot.mean, .boxplot.median{
+    fill: red;
+    stroke: red;
+}
+.boxplot.mean{
+    shape-rendering: geometricPrecision;
+}
+.violin{
+    shape-rendering: geometricPrecision;
+    fill: none !important;
+    stroke: #777;
+    stroke-width: 1px;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    stroke-width: 1px;
+    color-rendering: optimizeQuality !important;
+    shape-rendering: crispEdges !important;
+    text-rendering: geometricPrecision !important;
+
 }
