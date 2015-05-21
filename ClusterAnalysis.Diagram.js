@@ -136,24 +136,42 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         .text( 'Go' )
         .on( 'click', function() {
             var searchTerms = $searchInput.val();
-            console.log(searchTerms);
-            var clusterIndex = that.geneToCluster[searchTerms] + that.numOrthologyClusters;
-            // Give the clicked-on group a purple border
-            svg.selectAll(".group path")
-              .filter(function(d) {
-                return d.index === clusterIndex;
-              })
-            .transition()
-              .style("fill", "#00FF00");
+            if (searchTerms && searchTerms.length > 0) {
+                var indeces = [];
+                console.log(searchTerms);
+                searchTerms = searchTerms.replace(/ /g, '').split(',');
+                console.log(searchTerms);
+                
+                for ( var i = 0, ilen = searchTerms.length; i < ilen; i ++) {
+                    var clusterIndex = that.geneToCluster[searchTerms[i]] + that.numOrthologyClusters;
+                    indeces.push(clusterIndex);
 
-            // Keep the non-selected groups their normal color
-            svg.selectAll(".group path")
-              .filter(function(d) {
-                return d.index !== clusterIndex;
-              })
-            .transition()
-              .style("fill", function(d) { return colorGroup(d.index); });
+                    // Give the clicked-on group a green fill
+                    svg.selectAll(".group path")
+                      .filter(function(d) {
+                        return d.index === clusterIndex;
+                      })
+                    .transition()
+                      .style("fill", "#00FF00");
 
+                    // Keep the non-selected groups their normal color
+                    svg.selectAll(".group path")
+                      .filter(function(d) {
+//                        console.log('true or false', indeces.indexOf(d.index))
+                        if ( indeces.indexOf(d.index) > -1 ) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+//                        console.log(d.index !== clusterIndex);
+//                        return d.index !== clusterIndex;
+                      })
+                    .transition()
+                      .style("fill", function(d) { return colorGroup(d.index); });
+                }
+            else {
+                alert("Please input a gene/og id.")
+            }
         });
 
     var $infoContainer = $( '<div>' ).addClass( 'info-container' );
@@ -285,7 +303,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         return 0.4;
 
     };
-
+    
     // The following is adapted from http://bl.ocks.org/mbostock/4062006
     var chord = d3.layout.chord()
         .padding(.05)
