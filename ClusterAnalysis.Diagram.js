@@ -446,7 +446,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         /* From http://bl.ocks.org/d3noob/b3ff6ae1c120eea654b5* (mostly..)*/
 
         // Set the dimensions of the canvas / graph
-        var margin = {top: 0, bottom: 30, left: 30, right: 20},
+        var margin = {top: 0, bottom: 40, left: 70, right: 20},
             // The line plot indide info panel gets its dimensions from graphContainer
             // maybe TODO ?
             width = $infoContainer.width() - margin.left - margin.right,
@@ -478,24 +478,31 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                       "translate(" + margin.left + "," + margin.top + ")");
 
         // Get the data
-        var data = values;
+        var data = values,
+            dotRadius = 4.5,
+            maxYCoord = d3.max(data, function (d) {return d.pValueNegLog10}),
+            minYCoord = d3.min(data, function (d) { return d.pValueNegLog10}),
+            maxXCoord = d3.max(data, function (d) {return d.foldChange}),
+            minXCoord = d3.min(data, function (d) { return d.foldChange}),
+            YSpan = (maxYCoord - minYCoord) / 100;
 
         // Scale the range of the data
-        x.domain(d3.extent(data, function(d) { return d.condition; }));
-        y.domain([d3.min(data, function (d) { return d.mean - 0.1}),
-                  d3.max(data, function (d) {return d.mean + 0.1})]);
+        x.domain([minXCoord - dotRadius / 100, maxXCoord + dotRadius / 100]);
+        y.domain([minYCoord - YSpan, maxYCoord + YSpan]);
 
         // Add the dots
         infoPanelsvg.selectAll("dot")
             .data(data)
             .enter()
             .append("circle")
-            .attr("r", 2.5)
-            .attr("cx", function(d) { return x(d.condition); })
-            .attr("cy", function(d) { return y(d.mean); })
-            .style("stroke", function (d) {
-                if (d.pValue !== null && (d.pValue < 0.05 / values.length )) {
-                    return 'red';
+            .attr("r", dotRadius)
+            .attr("cx", function(d) { return x(d.foldChange); })
+            .attr("cy", function(d) { return y(d.pValueNegLog10); })
+            .style("fill", function (d) {
+                // This used to have a check for pValue !== null but the foldChange check
+                // superseeds it.
+                if (d.foldChange < 0.5 && d.foldChange > -0.5) {
+                    return '#bbb';
                 }
             })
             .on("mouseover", function(d) {
@@ -535,6 +542,33 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         infoPanelsvg.append("g")
             .attr("class", "y axis")
             .call(yAxis);
+        
+        // Add the 0.05 and 0.01 p-value significance lines
+        infoPanelsvg.append("svg:line")
+            .attr("class", "significance line")
+            .attr({
+                'x1': x(d3.min(data, function (d) { return d.foldChange - 0.01})),
+                'x2': x(d3.max(data, function (d) { return d.foldChange + 0.01})),
+                'y1': y(-Math.log10(0.05 / values.length)),
+                'y2': y(-Math.log10(0.05 / values.length))
+            })
+            .style("stroke", "#FFCC14")
+            .style("stroke-dasharray", ("5, 5"));
+        
+        // Add the X axis label
+        infoPanelsvg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height + margin.bottom - 5)
+            .style("text-anchor", "middle")
+            .text("log2 fold change");
+        
+        // Add the Y axis label
+        infoPanelsvg.append("text")
+            .attr("x", 0 - (height / 2))
+            .attr("y", 0 - margin.left + 25)
+            .attr("transform", "rotate(-90)")
+            .style("text-anchor", "middle")
+            .text("-log10 p-value");
     }
 
     // Display information about the cluster that you are hovering over.

@@ -321,7 +321,9 @@ handlers.tTest = function (inputData, callback) {
                             'condition': values[0][i].condition,
                             'conditionId': values[0][i].conditionId,
                             'mean': values[0][i].mean,
-                            'pValue': significantValues[i].pValue
+                            'pValue': significantValues[i].pValue,
+                            'foldChange': significantValues[i].foldChange,
+                            'pValueNegLog10': significantValues[i].pValueNegLog10
                         })
                     }
                     
