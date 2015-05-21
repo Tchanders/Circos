@@ -90,10 +90,11 @@ handlers.draw = function( inputData, callback ) {
 					'numExpressionClusters': m.numExpressionClusters,
 					'pValuesOfChords': m.pValuesOfChords,
                     'expressionClusters': m.expressionClusters,
-                    'orthologyClusters': m.orthologyClusters
+                    'orthologyClusters': m.orthologyClusters,
+                    'geneToCluster': m.geneToCluster
 				};
 
-				console.log( allResults );
+				// console.log( allResults );
 				callback( allResults );
 
 			}

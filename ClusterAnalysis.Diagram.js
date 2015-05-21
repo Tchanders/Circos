@@ -21,6 +21,7 @@ ClusterAnalysis.Diagram = function( v, species ) {
     this.pValuesOfChords = v.pValuesOfChords;
     this.expressionClusters = v.expressionClusters;
     this.orthologyClusters = v.orthologyClusters;
+    this.geneToCluster = v.geneToCluster;
 
     this.drawDiagram();
 
@@ -30,6 +31,9 @@ ClusterAnalysis.Diagram = function( v, species ) {
  * Draw the circos diagram
  */
 ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
+
+    // For accessing this in the functions
+    var that = this;
 
     /*
      * Functions for the small buttons
@@ -45,7 +49,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
             // Display the popup container and append svgContainer to diagramContainerBig
             $( '.main-container' ).append( $popupContainer );
-            $diagramContainerBig.append( $( this ).parent() );
+            $diagramContainerBig.append( $( this ).parent(), $searchDiv );
 
             // Display minimise button only
             $minimiseButton.show();
@@ -97,6 +101,11 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
      *          graphContainer
      *              diagramContainerBig
      *                  svgContainer (SEE BELOW)
+     *                  searchDiv
+     *                      inputGroup
+     *                          searchInput
+ *                              inputGroupButton
+ *                                  searchButton
      *          infoContainer
      *              infoTitle
      *              infoInnerContainer
@@ -113,6 +122,38 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
     var $popupContainer = $( '<div>' ).addClass( 'popup-container' );
     var $graphContainer = $( '<div>' ).addClass( 'graph-container' );
     var $diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' );
+
+    var $searchDiv = $( '<div>' );
+    var $inputGroup = $( '<div>' ).addClass( 'input-group' );
+    var $searchInput = $( '<input>' )
+        .addClass( 'form-control search-input' )
+        .attr( 'type', 'text' )
+        .attr( 'placeholder', 'Gene1, Gene2, ...' );
+    var $inputGroupButton = $( '<span>' ).addClass( 'input-group-btn' );
+    var $searchButton = $( '<button>' )
+        .addClass( 'btn btn-default' )
+        .text( 'Go' )
+        .on( 'click', function() {
+            var searchTerms = $searchInput.val();
+            console.log(searchTerms);
+            var clusterIndex = that.geneToCluster[searchTerms] + that.numOrthologyClusters;
+            // Give the clicked-on group a purple border
+            svg.selectAll(".group path")
+              .filter(function(d) {
+                return d.index === clusterIndex;
+              })
+            .transition()
+              .style("fill", "#00FF00");
+
+            // Keep the non-selected groups their normal color
+            svg.selectAll(".group path")
+              .filter(function(d) {
+                return d.index !== clusterIndex;
+              })
+            .transition()
+              .style("fill", function(d) { return colorGroup(d.index); });
+
+        });
 
     var $infoContainer = $( '<div>' ).addClass( 'info-container' );
     var $infoTitle = $( '<p>' ).addClass( 'info-title' ).text( "Cluster Information" );
@@ -167,6 +208,10 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
     $diagramContainerContainer.append( $diagramContainer );
     $diagramContainer.append( $svgContainer );
 
+    $searchDiv.append( $inputGroup );
+    $inputGroup.append( $searchInput, $inputGroupButton );
+    $inputGroupButton.append( $searchButton );
+
     $popupContainer.append( $graphContainer, $infoContainer, $goTermsContainer );
     $graphContainer.append( $diagramContainerBig );
     $infoContainer.append( $infoTitle, $infoInnerContainer );
@@ -189,8 +234,6 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
      * Draw the circos diagram and append to svgInnerContainer
      */
 
-    // For accessing this in the coloring functions
-    var that = this;
 
     var colorGroup = function( x ) {
 
@@ -316,7 +359,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             species = 'Plasmodium falciparum';
         }
 
-        // Give the clicked-on group a red border
+        // Give the clicked-on group a purple border
         svg.selectAll(".group path")
           .filter(function(d) {
             return d.index === clusterIndex;
