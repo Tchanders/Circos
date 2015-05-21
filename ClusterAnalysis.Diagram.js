@@ -71,7 +71,8 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
         // Unhighlight any selected clusters
         svg.selectAll(".group path")
-          .style("stroke", function(d) { return colorGroup(d.index); });
+          .style("stroke", function(d) { return colorGroup(d.index); })
+          .style("fill", function(d) { return colorGroup(d.index); });
 
         // Hide any tooltips that were displayed in the popup container
         $('.tooltip').css("opacity", 0);
@@ -316,7 +317,8 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         .on("mouseover", fade(0))
         .on("mouseout", fade(function(d) { return getChordOpacity(d); }))
         .on("mousedown", function(a) {
-            if ( $diagramContainerBig.children().length > 0 ) {
+            // This checks for the immediate children, so at the moment only searchDiv
+            if ( $diagramContainerBig.children().length > 1 ) {
                 getFacets(a);
             }
         });
