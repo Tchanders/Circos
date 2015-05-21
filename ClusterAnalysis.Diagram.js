@@ -424,7 +424,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 'evor: {range : {field:evo_rate_f, start:0, end:4, gap:0.13}},' +
                 'dupl: {range : {field:avg_para_count_f, start:1, end:31, gap:1.03}},' +
                 'univ: {range : {field:frac_species_f, start:0, end:1, gap:0.033}},' +
-                'para: {range : {field:copy_num_var_f, start:0, end:0.81, gap:0.027}}' +
+                'para: {range : {field:copy_num_var_f, start:0, end:1, gap:0.033}}' +
             "}";
         }
 
@@ -476,7 +476,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
         // Get the data
         var data = values,
-            dotRadius = 4.5,
+            dotRadius = 3.5,
             maxYCoord = d3.max(data, function (d) {return d.pValueNegLog10}),
             minYCoord = d3.min(data, function (d) { return d.pValueNegLog10}),
             maxXCoord = d3.max(data, function (d) {return d.foldChange}),
@@ -606,7 +606,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         console.log('dimensions', width, height, margin)
 
         var boxSpacing = 10;
-        var boxWidth = width / 8 - boxSpacing;
+        var boxWidth = width / 10 - boxSpacing;
 
         var domain = [0, 4];
         var resolution = 20;
@@ -616,7 +616,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         var evoRateDiv = d3.select($infoInnerContainer[0])
             .append("div")
 //                .attr("class", "evo-rate-div")
-                .style("width", "25%")
+                .style("width", "20%")
                 .style("height", height + "px")
 
         var svg = evoRateDiv.append("svg")
@@ -670,7 +670,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         var duplDiv = d3.select($infoInnerContainer[0])
             .append("div")
 //                .attr("class", "evo-rate-div")
-                .style("width", "25%")
+                .style("width", "20%")
                 .style("height", height + "px")
 
         svg = duplDiv.append("svg")
@@ -727,7 +727,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         var univDiv = d3.select($infoInnerContainer[0])
             .append("div")
 //                .attr("class", "evo-rate-div")
-                .style("width", "25%")
+                .style("width", "20%")
                 .style("height", height + "px")
 
         svg = univDiv.append("svg")
@@ -783,13 +783,13 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         var paraDiv = d3.select($infoInnerContainer[0])
             .append("div")
 //                .attr("class", "evo-rate-div")
-                .style("width", "25%")
+                .style("width", "20%")
                 .style("height", height + "px");
 
         svg = paraDiv.append("svg")
             .attr("style", 'width: 100%; height: 100%; border: 0');
 
-        domain = [0, 0.81];
+        domain = [0, 1];
         var yPara = d3.scale.linear()
             .range([height - margin.bottom, margin.top])
             .domain(domain)
