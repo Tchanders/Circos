@@ -66,7 +66,7 @@ var calculateSignificant = function (clusters) {
             pValueNegLog10 = -Math.log10(pValue),
             foldChange = clusterMean - genomeMean;
         
-        console.log(i+1, clusterMean, genomeMean, foldChange, pValue, pValueNegLog10);
+        // console.log(i+1, clusterMean, genomeMean, foldChange, pValue, pValueNegLog10);
         
         significant.push({
             'pValue': pValue,

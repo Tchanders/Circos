@@ -58,7 +58,8 @@ function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
 				+ ' OR '
 				+ chosenOrthoOption
 				+ ')',
-			filter: 'analysis_id,member_ids',
+			// id is cluster id, needed for the geneToCluster dictionary
+			filter: 'analysis_id,id,member_ids',
 			mode: 'draw'
 		}
 	} );

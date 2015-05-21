@@ -21,6 +21,7 @@ ClusterAnalysis.Diagram = function( v, species ) {
     this.pValuesOfChords = v.pValuesOfChords;
     this.expressionClusters = v.expressionClusters;
     this.orthologyClusters = v.orthologyClusters;
+    this.geneToCluster = v.geneToCluster;
 
     this.drawDiagram();
 
@@ -30,6 +31,9 @@ ClusterAnalysis.Diagram = function( v, species ) {
  * Draw the circos diagram
  */
 ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
+
+    // For accessing this in the functions
+    var that = this;
 
     /*
      * Functions for the small buttons
@@ -45,7 +49,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
             // Display the popup container and append svgContainer to diagramContainerBig
             $( '.main-container' ).append( $popupContainer );
-            $diagramContainerBig.append( $( this ).parent() );
+            $diagramContainerBig.append( $( this ).parent(), $searchDiv );
 
             // Display minimise button only
             $minimiseButton.show();
@@ -97,6 +101,11 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
      *          graphContainer
      *              diagramContainerBig
      *                  svgContainer (SEE BELOW)
+     *                  searchDiv
+     *                      inputGroup
+     *                          searchInput
+ *                              inputGroupButton
+ *                                  searchButton
      *          infoContainer
      *              infoTitle
      *              infoInnerContainer
@@ -104,11 +113,47 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
      *          goTermsContainer
      *              goTermsTitle
      *              goTermsList
+     *                  goTermsTable
+     *                      goTermsTableHead
+     *                          goTermsTableHeadings
+     *                      goTermsTableBody
      */
     // TODO: classes instead of .css, shared class for all titles
     var $popupContainer = $( '<div>' ).addClass( 'popup-container' );
     var $graphContainer = $( '<div>' ).addClass( 'graph-container' );
     var $diagramContainerBig = $( '<div>' ).addClass( 'diagram-container-big' );
+
+    var $searchDiv = $( '<div>' );
+    var $inputGroup = $( '<div>' ).addClass( 'input-group' );
+    var $searchInput = $( '<input>' )
+        .addClass( 'form-control search-input' )
+        .attr( 'type', 'text' )
+        .attr( 'placeholder', 'Gene1, Gene2, ...' );
+    var $inputGroupButton = $( '<span>' ).addClass( 'input-group-btn' );
+    var $searchButton = $( '<button>' )
+        .addClass( 'btn btn-default' )
+        .text( 'Go' )
+        .on( 'click', function() {
+            var searchTerms = $searchInput.val();
+            console.log(searchTerms);
+            var clusterIndex = that.geneToCluster[searchTerms] + that.numOrthologyClusters;
+            // Give the clicked-on group a purple border
+            svg.selectAll(".group path")
+              .filter(function(d) {
+                return d.index === clusterIndex;
+              })
+            .transition()
+              .style("fill", "#00FF00");
+
+            // Keep the non-selected groups their normal color
+            svg.selectAll(".group path")
+              .filter(function(d) {
+                return d.index !== clusterIndex;
+              })
+            .transition()
+              .style("fill", function(d) { return colorGroup(d.index); });
+
+        });
 
     var $infoContainer = $( '<div>' ).addClass( 'info-container' );
     var $infoTitle = $( '<p>' ).addClass( 'info-title' ).text( "Cluster Information" );
@@ -119,8 +164,16 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .css("width", "100%");
     var $goTermsContainer = $( '<div>' ).addClass('go-terms-container');
     var $goTermsTitle = $( '<h3>' ).text( 'Over-represented GO terms' );
-    var $goTermsList = $( '<p>' )
-        .text( 'Click on an expression cluster to see the over-respresented GO terms' );
+    var $goTermsList = $( '<div>' )
+        .text( 'Click on an expression cluster to see the over-respresented GO terms' )
+        .addClass( 'go-terms-list' );
+    var $goTermsTable = $( '<table>' )
+        .attr( 'id', 'myTable' )
+        .attr( 'class', 'tablesorter' );
+    var $goTermsTableHead = $( '<thead>' );
+    var $goTermsTableHeadings = $( '<tr>' );
+    var $goTermsTableBody = $( '<tbody>' );
+
 
     /* Both trees:
     *  svgContainer
@@ -155,11 +208,25 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
     $diagramContainerContainer.append( $diagramContainer );
     $diagramContainer.append( $svgContainer );
 
+    $searchDiv.append( $inputGroup );
+    $inputGroup.append( $searchInput, $inputGroupButton );
+    $inputGroupButton.append( $searchButton );
+
     $popupContainer.append( $graphContainer, $infoContainer, $goTermsContainer );
     $graphContainer.append( $diagramContainerBig );
     $infoContainer.append( $infoTitle, $infoInnerContainer );
     $infoInnerContainer.append( $infoInnerContainerText);
     $goTermsContainer.append( $goTermsTitle, $goTermsList );
+    //$goTermsList.apend( $goTermsTable );
+    $goTermsTable.append( $goTermsTableHead, $goTermsTableBody );
+    $goTermsTableHead.append( $goTermsTableHeadings );
+    $goTermsTableHeadings.append(
+        $( '<th>' ).addClass( 'table-name' ).text( 'Name' ),
+        $( '<th>' ).text( 'Observed' ),
+        $( '<th>' ).text( 'Expected' ),
+        $( '<th>' ).text( 'Observed/Expected' ),
+        $( '<th>' ).text( 'p-value' )
+    );
 
     $svgContainer.append( $title, $minimiseButton, $maximiseButton, $closeButton, $svgInnerContainer );
 
@@ -167,8 +234,6 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
      * Draw the circos diagram and append to svgInnerContainer
      */
 
-    // For accessing this in the coloring functions
-    var that = this;
 
     var colorGroup = function( x ) {
 
@@ -294,7 +359,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             species = 'Plasmodium falciparum';
         }
 
-        // Give the clicked-on group a red border
+        // Give the clicked-on group a purple border
         svg.selectAll(".group path")
           .filter(function(d) {
             return d.index === clusterIndex;
@@ -373,14 +438,27 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 }
             } );
             $.when( promise3 ).done( function( v ) {
+
+                $goTermsTableBody.empty();
                 if ( v[0] ) {
-                    $goTermsList.text( v[0]['name'] );
-                    for ( var i = 1; i < v.length; i++ ) {
-                            $goTermsList.append( ', ', v[i]['name'] );
+                    $goTermsList.text( '' );
+                    $goTermsList.append( $goTermsTable );
+                    for ( var i = 0; i < v.length; i++ ) {
+                        var increase = ( v[i]['observed'] / v[i]['expected'] ).toPrecision( 3 );
+                        var $goTermsTableRow = $( '<tr>' );
+                        $goTermsTableRow.append(
+                            $( '<td>' ).text( v[i]['name'] ),
+                            $( '<td>' ).text( v[i]['observed'] ),
+                            $( '<td>' ).text( v[i]['expected'].toPrecision( 3 ) ),
+                            $( '<td>' ).text( increase ),
+                            $( '<td>' ).text( v[i]['pValue'].toPrecision( 3 ) )
+                        );
+                        $goTermsTableBody.append( $goTermsTableRow );
                     }
                 } else {
                     $goTermsList.text( 'There are no over-represented GO terms in this cluster' );
                 }
+                $("#myTable").tablesorter( {sortList: [[3, 1]]} );
             } );
         }
     }

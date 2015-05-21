@@ -29,6 +29,9 @@ ClusterAnalysis.DiagramData = function( expressionClusters, orthologyClusters, g
 	this.pValue = ind.calculate( this.numberMatrix );
 	this.pValuesOfChords = ind.chordAnalysis( this.numberMatrix );
 
+	this.geneToCluster = {};
+	this.makeGeneToCluster();
+
 };
 
 /*
@@ -70,6 +73,8 @@ ClusterAnalysis.DiagramData.prototype.populateNumberMatrix = function() {
 	// For each expression cluster...
 	for ( i = 0, ilen = this.expressionClusters.length; i < ilen; i++ ) {
 		geneIDs = this.expressionClusters[i].member_ids;
+		// console.log( 'expression cluster id', this.expressionClusters[i].id );
+		// console.log( 'eIndex', i );
 		// ...for each gene...
 		for ( j = 0, jlen = geneIDs.length; j < jlen; j++ ) {
 			// ...if it has a corresponding orthologous group...
@@ -122,4 +127,28 @@ ClusterAnalysis.DiagramData.prototype.populateCircosMatrix = function() {
 		}
 	}
 
+};
+
+ClusterAnalysis.DiagramData.prototype.makeGeneToCluster = function() {
+
+	var i, j, geneIDs, clusterIndex;
+	// For each expression cluster...
+	for ( i = 0, ilen = this.numExpressionClusters; i < ilen; i++ ) {
+		geneIDs = this.expressionClusters[i].member_ids;
+		clusterIndex = this.parseUnparsedID( this.expressionClusters[i].id );
+		// clusterIndex = parseUnparsedID( this.expressionClusters[i].id );
+		// ...for each gene...
+		for ( j = 0, jlen = geneIDs.length; j < jlen; j++ ) {
+			// ...record which expression cluster it is in
+			geneID = geneIDs[j];
+			this.geneToCluster[geneID] = clusterIndex;
+		}
+	}
+
+};
+
+// Does this need prototype?
+ClusterAnalysis.DiagramData.prototype.parseUnparsedID = function( unparsedID ) {
+	var stringID = unparsedID.split( '_' ).pop();
+	return parseInt( stringID, 10 );
 };

@@ -111,6 +111,14 @@
 	font-size: 24px;
 }
 
+.table-name {
+	width: 700px;
+}
+
+.go-terms-list {
+	display: inline-block;
+}
+
 .button {
 	position: relative;
 	border-style: solid;
