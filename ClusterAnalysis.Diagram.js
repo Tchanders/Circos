@@ -419,11 +419,14 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 'duplPerc:"percentile(avg_para_count_f,5,25,50,75,95)",' +
                 'univMean:"avg(frac_species_f)",' +
                 'univPerc:"percentile(frac_species_f,5,25,50,75,95)",' +
+                'copyMean:"avg(frac_species_f)",' +
+                'copyPerc:"percentile(frac_species_f,5,25,50,75,95)",' +
                 'paraMean:"avg(copy_num_var_f)",' +
                 'paraPerc:"percentile(copy_num_var_f,5,25,50,75,95)",' +
                 'evor: {range : {field:evo_rate_f, start:0, end:4, gap:0.13}},' +
                 'dupl: {range : {field:avg_para_count_f, start:1, end:31, gap:1.03}},' +
                 'univ: {range : {field:frac_species_f, start:0, end:1, gap:0.033}},' +
+                'copy: {range : {field:single_copy_frac_f, start:0, end:1, gap:0.033}},' +
                 'para: {range : {field:copy_num_var_f, start:0, end:1, gap:0.033}}' +
             "}";
         }
@@ -586,6 +589,9 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 'univHist': clusters[i].univ.buckets,
                 'univMean': clusters[i].univMean,
                 'univPerc': clusters[i].univPerc,
+                'copyHist': clusters[i].copy.buckets,
+                'copyMean': clusters[i].copyMean,
+                'copyPerc': clusters[i].copyPerc,
                 'paraMean': clusters[i].paraMean,
                 'paraPerc': clusters[i].paraPerc,
                 'paraHist': clusters[i].para.buckets
@@ -834,6 +840,63 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .attr('class', 'axis')
             .attr("transform", "translate(" + margin.left + ",0)")
             .call(yAxisPara);
+        
+//        // single_copy_frac_f
+        var copyDiv = d3.select($infoInnerContainer[0])
+            .append("div")
+//                .attr("class", "evo-rate-div")
+                .style("width", "20%")
+                .style("height", height + "px")
+
+        svg = copyDiv.append("svg")
+            .attr("style", 'width: 100%; height: 100%; border: 0');
+
+        domain = [0, 1];
+        var yCopy = d3.scale.linear()
+            .range([height - margin.bottom, margin.top])
+            .domain(domain)
+            .nice();
+
+        var yAxisCopy = d3.svg.axis()
+            .scale(yUniv)
+            .orient("left");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth)
+            .attr("y", margin.top/2)
+            .style("text-anchor", "middle")
+            .text("Copy");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth/2)
+            .attr("y", height - margin.bottom/2)
+            .style("text-anchor", "middle")
+            .text("All");
+
+        svg.append("text")
+            .attr("x", margin.left + boxWidth + boxWidth/2)
+            .attr("y", height - margin.bottom/2)
+            .style("text-anchor", "middle")
+            .text("Cluster");
+
+
+        g = svg.append("g").attr("transform", "translate(" + (0 * (boxWidth) + margin.left) + ",0)");
+        //var g = svg.append("g").attr("transform", "translate(" + (0 * (boxWidth + boxSpacing) + margin.left) + ",-" + margin.top + ")");
+
+        addViolin(g, orthologyValues[1].copyHist, [height - margin.bottom, margin.top], boxWidth, domain, resolution, interpolation, 0.25, false);
+        addBoxPlot(g, orthologyValues[1].copyPerc, orthologyValues[1].copyMean, [height - margin.bottom, margin.top], boxWidth, domain, .15, false);
+
+        // add the chart for the cluster
+        g = svg.append("g").attr("transform", "translate(" + (1 * (boxWidth) + margin.left) + ",0)");
+
+        addViolin(g, orthologyValues[0].copyHist, [height - margin.bottom, margin.top], boxWidth, domain, resolution, interpolation, 0.25, false);
+        addBoxPlot(g, orthologyValues[0].copyPerc, orthologyValues[0].copyMean, [height - margin.bottom, margin.top], boxWidth, domain, .15, false);
+
+        svg.append("g")
+            .attr('class', 'axis')
+            .attr("transform", "translate(" + margin.left + ",0)")
+            .call(yAxisUniv);
+
     }
 
     function getConditionInfo(conditionId) {
