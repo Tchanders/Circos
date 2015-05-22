@@ -31,7 +31,11 @@ ClusterAnalysis.DiagramData = function( expressionClusters, orthologyClusters, g
 
 	this.geneToCluster = {};
 	this.makeGeneToCluster();
-
+    
+    this.ogToCluster = {};
+    this.makeOGToCluster();
+    
+    console.log(this.ogToCluster);
 };
 
 /*
@@ -142,6 +146,24 @@ ClusterAnalysis.DiagramData.prototype.makeGeneToCluster = function() {
 			// ...record which expression cluster it is in
 			geneID = geneIDs[j];
 			this.geneToCluster[geneID] = clusterIndex;
+		}
+	}
+
+};
+
+ClusterAnalysis.DiagramData.prototype.makeOGToCluster = function() {
+
+	var i, j, ogIDs, clusterIndex;
+	// For each expression cluster...
+	for ( i = 0, ilen = this.numOrthologyClusters; i < ilen; i++ ) {
+		ogIDs = this.orthologyClusters[i].member_ids;
+		clusterIndex = this.parseUnparsedID( this.orthologyClusters[i].id );
+		// clusterIndex = parseUnparsedID( this.expressionClusters[i].id );
+		// ...for each gene...
+		for ( j = 0, jlen = ogIDs.length; j < jlen; j++ ) {
+			// ...record which expression cluster it is in
+			ogID = ogIDs[j];
+			this.ogToCluster[ogID] = clusterIndex;
 		}
 	}
 
