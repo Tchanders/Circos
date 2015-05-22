@@ -527,8 +527,8 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 'duplPerc:"percentile(avg_para_count_f,5,25,50,75,95)",' +
                 'univMean:"avg(frac_species_f)",' +
                 'univPerc:"percentile(frac_species_f,5,25,50,75,95)",' +
-                'copyMean:"avg(frac_species_f)",' +
-                'copyPerc:"percentile(frac_species_f,5,25,50,75,95)",' +
+                'copyMean:"avg(single_copy_frac_f)",' +
+                'copyPerc:"percentile(single_copy_frac_f,5,25,50,75,95)",' +
                 'paraMean:"avg(copy_num_var_f)",' +
                 'paraPerc:"percentile(copy_num_var_f,5,25,50,75,95)",' +
                 'evor: {range : {field:evo_rate_f, start:0, end:4, gap:0.13}},' +
@@ -749,6 +749,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .attr("x", margin.left + boxWidth)
             .attr("y", margin.top/2)
             .style("text-anchor", "middle")
+            .style("font-size", 10)
             .text("Evolutionary Rate");
 
         svg.append("text")
@@ -806,6 +807,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .attr("x", margin.left + boxWidth)
             .attr("y", margin.top/2)
             .style("text-anchor", "middle")
+            .style("font-size", 10)
             .text("Duplicability");
 
         svg.append("text")
@@ -861,6 +863,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .attr("x", margin.left + boxWidth)
             .attr("y", margin.top/2)
             .style("text-anchor", "middle")
+            .style("font-size", 10)
             .text("Universality");
 
         svg.append("text")
@@ -917,7 +920,8 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .attr("x", margin.left + boxWidth)
             .attr("y", margin.top/2)
             .style("text-anchor", "middle")
-            .text("Para");
+            .style("font-size", 10)
+            .text("Paralogue Variation");
 
         svg.append("text")
             .attr("x", margin.left + boxWidth/2)
@@ -973,7 +977,8 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .attr("x", margin.left + boxWidth)
             .attr("y", margin.top/2)
             .style("text-anchor", "middle")
-            .text("Copy");
+            .style("font-size", 10)
+            .text("Single copy genes ratio");
 
         svg.append("text")
             .attr("x", margin.left + boxWidth/2)
