@@ -116,8 +116,10 @@ handlers.goTerms = function( inputData, callback ) {
 	console.log( 'inside goTerms' );
 	console.log( 'inputData:', inputData );
 
+	var facet, data;
+
 	// Make the facet part of data
-	var facet = JSON.stringify( {
+	facet = JSON.stringify( {
 		conditions: {
 			terms: {
 				field: 'go_ids',
@@ -128,14 +130,18 @@ handlers.goTerms = function( inputData, callback ) {
 	} );
 
 	// Make the data part of the options
-	var data = {
-		//'q': '{!join from=member_ids to=id} id:' + species + '_expr_cluster_' + numExprClusters + '_' + clusterId,
-		'q': '{!join from=member_ids to=id} analysis_id:' + inputData.analysisId,
+	data = {
 		'fl': 'gene_id,go_ids',
 		'wt': 'json',
 		'rows': '1',
 		'json.facet': facet
 	};
+	if ( inputData.clusterType === 'expression' ) {
+		data.q = '{!join from=member_ids to=id} analysis_id:' + inputData.analysisId;
+	} else if ( inputData.clusterType === 'orthology' ) {
+		data.q = '{!join from=member_ids to=og_ids} analysis_id:' + inputData.analysisId;
+		data.fq = 'species_s:\"' + inputData.species + '\"';
+	}
 
 	// Make options for the request
 	var options = {
@@ -154,7 +160,8 @@ handlers.goTerms = function( inputData, callback ) {
 			var significantTerms = {};
 			var allBuckets = body.facets.conditions.buckets;
 			var numBuckets = body.facets.conditions.numBuckets;
-			console.log( numBuckets );
+			// console.log( numBuckets );
+			// console.log( 'first bucket', allBuckets[0] );
 
 			function calculateCountSum( buckets ) {
 				var sum = buckets.reduce( function( prev, curr ) {
@@ -163,10 +170,14 @@ handlers.goTerms = function( inputData, callback ) {
 				return sum;
 			}
 			N = calculateCountSum( allBuckets );
-			// console.log( 'Total number of GO terms for Anopheles:', N );
+			//console.log( 'Total number of GO terms:', N );
 
 			// Calculate n
-			data.q = '{!join from=member_ids to=id} id:' + inputData.clusterId;
+			if ( inputData.clusterType === 'expression' ) {
+				data.q = '{!join from=member_ids to=id} id:' + inputData.clusterId;
+			} else if ( inputData.clusterType === 'orthology' ) {
+				data.q = '{!join from=member_ids to=og_ids} id:' + inputData.clusterId;
+			}
 			request( options, function( error, response, body ) {
 				if ( error ) {
 					console.log( error );
@@ -175,8 +186,9 @@ handlers.goTerms = function( inputData, callback ) {
 					//var R = new rstats.session();
 
 					var clusterBuckets = body.facets.conditions.buckets;
+					//console.log( 'first cluster bucket', clusterBuckets[0] );
 					n = calculateCountSum( clusterBuckets );
-					// console.log( 'Number of GO terms in cluster:', n );
+					//console.log( 'Number of GO terms in cluster:', n );
 
 					// Calculate each K and k
 					// Perform analysis for each term
@@ -199,7 +211,7 @@ handlers.goTerms = function( inputData, callback ) {
 							return count;
 						}
 						k = findCountTermOfInterest( clusterBuckets );
-						// console.log( 'Number of GO term of interest in cluster:', k );
+						//console.log( 'Number of GO term of interest in cluster:', k );
 
 
 						// R.assign( 'x', k );
@@ -218,7 +230,7 @@ handlers.goTerms = function( inputData, callback ) {
 									'expected': expected,
 									'observed': k
 								};
-								//console.log(hyperGeom);
+								console.log(hyperGeom);
 							}
 						}
 
@@ -227,7 +239,7 @@ handlers.goTerms = function( inputData, callback ) {
 					//console.log( significantTerms, Object.keys( significantTerms ), Object.keys( significantTerms ).length );
 
 					q = 'id:"' + Object.keys( significantTerms ).join( '" OR id:"' ) + '"';
-					//console.log( q );
+					//console.log( q.length );
 
 					// Make the data part of the options
 					var data = {
@@ -250,7 +262,6 @@ handlers.goTerms = function( inputData, callback ) {
 							console.log( error );
 						} else {
 							// body.response.docs is an array of objects: {'id', 'name', 'description'}
-							console.log( body.response.docs );
 							var allResults = body.response.docs;
 							allResults.forEach( function( result ) {
 								var currentTerm = significantTerms[result.id];
@@ -259,7 +270,6 @@ handlers.goTerms = function( inputData, callback ) {
 								//result.expected = Math.round( currentTerm.expected );
 								result.expected = currentTerm.expected;
 								result.observed = currentTerm.observed;
-								console.log( result );
 							} );
 							callback( body.response.docs );
 						}

@@ -29,6 +29,7 @@ function makeDictionary( value ) {
 		for ( i = 0, ilen = dictData.length; i < ilen; i++ ) {
 			// og_ids is always array of length 1
 			geneToOG[dictData[i].gene_id] = dictData[i].og_ids[0];
+			geneToOG[dictData[i].og_ids[0]] = dictData[i].gene_id;
 		}
 
 		console.log( Object.keys( geneToOG ).length );
