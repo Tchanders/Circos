@@ -166,7 +166,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
     var $goTermsContainer = $( '<div>' ).addClass('go-terms-container');
     var $goTermsTitle = $( '<h3>' ).text( 'Over-represented GO terms' );
     var $goTermsList = $( '<div>' )
-        .text( 'Click on an expression cluster to see the over-respresented GO terms' )
+        .text( 'Click on a cluster to see the over-respresented GO terms' )
         .addClass( 'go-terms-list' );
     var $goTermsTable = $( '<table>' )
         .attr( 'id', 'myTable' )
@@ -351,6 +351,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             species = that.species,
             analysis_id,
             clusterId,
+            clusterType,
             ids;
 
         $('.tooltip').css("opacity", 0);
@@ -379,17 +380,18 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
 
         console.log(clusterIndex + ' ' + species);
         if ( clusterIndex + 1 <= orthoLen ) {
-            $goTermsList.text( 'Click on an expression cluster to see the over-respresented GO terms' );
             console.log("we are in ortho");
             analysis_id = that.orthologyClusters[clusterIndex].analysis_id
             ids = that.orthologyClusters[clusterIndex].member_ids;
             clusterId = analysis_id + '_' + ('000'+clusterIndex.toString()).slice(-3);
+            clusterType = 'orthology';
         } else {
             console.log("we are in expr");
             var exprIndex = clusterIndex - orthoLen;
             analysis_id = that.expressionClusters[exprIndex].analysis_id;
             ids = that.expressionClusters[exprIndex].member_ids;
             clusterId = analysis_id + '_' + ('000' + exprIndex.toString() ).slice(-3);
+            clusterType = 'expression';
         }
 
         // Construct the request
@@ -402,7 +404,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             promise2 = getFacetData( 'member_ids',
                                      'og_id',
                                      'analysis_id:' + analysis_id);
-            
+
             $.when( promise1, promise2 ).done( function( v1i, v2i ) {
                 /* The response is an array with three elements:
                  *   [0]: The actual response from solr.
@@ -429,40 +431,42 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 console.log('from nodejs', answer);
                 showInfoPanelExpr(answer);
             })
-            
-            // And this is the go term enrichment.
-            promise3 = $.ajax( 'http://localhost:8081',  {
-                dataType: 'jsonp',
-                data: {
-                    'analysisId': analysis_id,
-                    'clusterId': clusterId,
-                    mode: 'goTerms'
-                }
-            } );
-            $.when( promise3 ).done( function( v ) {
 
-                $goTermsTableBody.empty();
-                if ( v[0] ) {
-                    $goTermsList.text( '' );
-                    $goTermsList.append( $goTermsTable );
-                    for ( var i = 0; i < v.length; i++ ) {
-                        var increase = ( v[i]['observed'] / v[i]['expected'] ).toPrecision( 3 );
-                        var $goTermsTableRow = $( '<tr>' );
-                        $goTermsTableRow.append(
-                            $( '<td>' ).text( v[i]['name'] ),
-                            $( '<td>' ).text( v[i]['observed'] ),
-                            $( '<td>' ).text( v[i]['expected'].toPrecision( 3 ) ),
-                            $( '<td>' ).text( increase ),
-                            $( '<td>' ).text( v[i]['pValue'].toPrecision( 3 ) )
-                        );
-                        $goTermsTableBody.append( $goTermsTableRow );
-                    }
-                } else {
-                    $goTermsList.text( 'There are no over-represented GO terms in this cluster' );
-                }
-                $("#myTable").tablesorter( {sortList: [[3, 1]]} );
-            } );
         }
+        // And this is the go term enrichment.
+        promise3 = $.ajax( 'http://localhost:8081',  {
+            dataType: 'jsonp',
+            data: {
+                'analysisId': analysis_id,
+                'clusterId': clusterId,
+                'clusterType': clusterType,
+                'species': species,
+                mode: 'goTerms'
+            }
+        } );
+        $.when( promise3 ).done( function( v ) {
+
+            $goTermsTableBody.empty();
+            if ( v[0] ) {
+                $goTermsList.text( '' );
+                $goTermsList.append( $goTermsTable );
+                for ( var i = 0; i < v.length; i++ ) {
+                    var increase = ( v[i]['observed'] / v[i]['expected'] ).toPrecision( 3 );
+                    var $goTermsTableRow = $( '<tr>' );
+                    $goTermsTableRow.append(
+                        $( '<td>' ).text( v[i]['name'] ),
+                        $( '<td>' ).text( v[i]['observed'] ),
+                        $( '<td>' ).text( v[i]['expected'].toPrecision( 3 ) ),
+                        $( '<td>' ).text( increase ),
+                        $( '<td>' ).text( v[i]['pValue'].toPrecision( 3 ) )
+                    );
+                    $goTermsTableBody.append( $goTermsTableRow );
+                }
+            } else {
+                $goTermsList.text( 'There are no over-represented GO terms in this cluster' );
+            }
+            $("#myTable").tablesorter( {sortList: [[3, 1]]} );
+        } );
     }
 
     function getFacetData(from, to, initialParameter, filter) {
@@ -622,7 +626,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         infoPanelsvg.append("g")
             .attr("class", "y axis")
             .call(yAxis);
-        
+
         // Add the 0.05 and 0.01 p-value significance lines
         infoPanelsvg.append("svg:line")
             .attr("class", "significance line")
@@ -634,14 +638,14 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             })
             .style("stroke", "#FFCC14")
             .style("stroke-dasharray", ("5, 5"));
-        
+
         // Add the X axis label
         infoPanelsvg.append("text")
             .attr("x", width / 2)
             .attr("y", height + margin.bottom - 5)
             .style("text-anchor", "middle")
             .text("log2 fold change");
-        
+
         // Add the Y axis label
         infoPanelsvg.append("text")
             .attr("x", 0 - (height / 2))
@@ -920,7 +924,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .attr('class', 'axis')
             .attr("transform", "translate(" + margin.left + ",0)")
             .call(yAxisPara);
-        
+
 //        // single_copy_frac_f
         var copyDiv = d3.select($infoInnerContainer[0])
             .append("div")

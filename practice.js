@@ -20,7 +20,6 @@ function getData( field, value, filter ) {
 function showOptions( species ) {
 
 	var i, key,
-		dictLength,
 		option,
 		type,
 		types = ['expr', 'ortho'];
@@ -42,13 +41,13 @@ function showOptions( species ) {
 
 			chosenExpressionOption = selectedSpecies + '_expr_cluster_' + $( '.expr-cluster-select' ).val();
 			chosenOrthoOption = selectedSpecies + '_ortho_cluster_' + $( '.ortho-cluster-select' ).val();
-			makeCircos( chosenExpressionOption, chosenOrthoOption, geneToOG ); // TODO sort out global geneToOG
+			makeCircos( chosenExpressionOption, chosenOrthoOption );
 
 		} );
 
 }
 
-function makeCircos( chosenExpressionOption, chosenOrthoOption, dict ) {
+function makeCircos( chosenExpressionOption, chosenOrthoOption ) {
 
 	var promise = $.ajax( 'http://localhost:8081',  {
 		dataType: 'jsonp',
