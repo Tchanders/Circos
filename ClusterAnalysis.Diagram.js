@@ -22,6 +22,8 @@ ClusterAnalysis.Diagram = function( v, species ) {
     this.expressionClusters = v.expressionClusters;
     this.orthologyClusters = v.orthologyClusters;
     this.geneToCluster = v.geneToCluster;
+    this.ogToCluster = v.ogToCluster;
+    this.geneToGroup = v.geneToGroup;
 
     this.drawDiagram();
 
@@ -138,18 +140,24 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             var searchTerms = $searchInput.val();
             if (searchTerms && searchTerms.length > 0) {
                 var indeces = [];
-                console.log(searchTerms);
                 searchTerms = searchTerms.replace(/ /g, '').split(',');
                 console.log(searchTerms);
                 
                 for ( var i = 0, ilen = searchTerms.length; i < ilen; i ++) {
-                    var clusterIndex = that.geneToCluster[searchTerms[i]] + that.numOrthologyClusters;
-                    indeces.push(clusterIndex);
+                    var exprClusterIndex = that.geneToCluster[searchTerms[i]] + that.numOrthologyClusters,
+                        orthoID = that.geneToGroup[searchTerms[i]],
+                        orthoClusterIndex = that.ogToCluster[orthoID];
+                    
+                    indeces.push(exprClusterIndex, orthoClusterIndex);
 
                     // Give the clicked-on group a green fill
                     svg.selectAll(".group path")
                       .filter(function(d) {
-                        return d.index === clusterIndex;
+                        if ( indeces.indexOf(d.index) > -1 ) {
+                            return true;
+                        } else {
+                            return false;
+                        }
                       })
                     .transition()
                       .style("fill", "#00FF00");
@@ -157,20 +165,18 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                     // Keep the non-selected groups their normal color
                     svg.selectAll(".group path")
                       .filter(function(d) {
-//                        console.log('true or false', indeces.indexOf(d.index))
                         if ( indeces.indexOf(d.index) > -1 ) {
                             return false;
                         } else {
                             return true;
                         }
-//                        console.log(d.index !== clusterIndex);
-//                        return d.index !== clusterIndex;
                       })
                     .transition()
                       .style("fill", function(d) { return colorGroup(d.index); });
                 }
+            }
             else {
-                alert("Please input a gene/og id.")
+                alert("Please specify at least one gene id.")
             }
         });
 

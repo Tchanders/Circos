@@ -91,7 +91,9 @@ handlers.draw = function( inputData, callback ) {
 					'pValuesOfChords': m.pValuesOfChords,
                     'expressionClusters': m.expressionClusters,
                     'orthologyClusters': m.orthologyClusters,
-                    'geneToCluster': m.geneToCluster
+                    'geneToCluster': m.geneToCluster,
+                    'ogToCluster': m.ogToCluster,
+                    'geneToGroup': geneToGroup
 				};
 
 				// console.log( allResults );

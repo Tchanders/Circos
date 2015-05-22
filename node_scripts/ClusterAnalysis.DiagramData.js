@@ -34,8 +34,6 @@ ClusterAnalysis.DiagramData = function( expressionClusters, orthologyClusters, g
     
     this.ogToCluster = {};
     this.makeOGToCluster();
-    
-    console.log(this.ogToCluster);
 };
 
 /*
