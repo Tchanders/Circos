@@ -402,7 +402,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             promise2 = getFacetData( 'member_ids',
                                      'og_id',
                                      'analysis_id:' + analysis_id);
-            
+
             $.when( promise1, promise2 ).done( function( v1i, v2i ) {
                 /* The response is an array with three elements:
                  *   [0]: The actual response from solr.
@@ -429,7 +429,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                 console.log('from nodejs', answer);
                 showInfoPanelExpr(answer);
             })
-            
+
             // And this is the go term enrichment.
             promise3 = $.ajax( 'http://localhost:8081',  {
                 dataType: 'jsonp',
@@ -622,7 +622,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
         infoPanelsvg.append("g")
             .attr("class", "y axis")
             .call(yAxis);
-        
+
         // Add the 0.05 and 0.01 p-value significance lines
         infoPanelsvg.append("svg:line")
             .attr("class", "significance line")
@@ -634,14 +634,14 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             })
             .style("stroke", "#FFCC14")
             .style("stroke-dasharray", ("5, 5"));
-        
+
         // Add the X axis label
         infoPanelsvg.append("text")
             .attr("x", width / 2)
             .attr("y", height + margin.bottom - 5)
             .style("text-anchor", "middle")
             .text("log2 fold change");
-        
+
         // Add the Y axis label
         infoPanelsvg.append("text")
             .attr("x", 0 - (height / 2))
@@ -920,7 +920,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
             .attr('class', 'axis')
             .attr("transform", "translate(" + margin.left + ",0)")
             .call(yAxisPara);
-        
+
 //        // single_copy_frac_f
         var copyDiv = d3.select($infoInnerContainer[0])
             .append("div")
