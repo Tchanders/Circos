@@ -647,7 +647,7 @@ ClusterAnalysis.Diagram.prototype.drawDiagram = function() {
                         .duration(200)
                         .style("opacity", .9);
 
-                    hoverDiv.html(conditionName + '<br/>' + pvalue)
+                    hoverDiv.html(conditionName)
                         .style("left", xcoord + "px")
                         .style("top", ycoord + "px");
                 });
